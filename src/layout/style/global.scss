@@ -1,0 +1,28 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+.icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.15em;
+    fill: currentColor;
+    overflow: hidden;
+}
+
+@keyframes bounce-down {
+    25% {
+        transform: translateY(-10px);
+    }
+    50%,
+    100% {
+        transform: translateY(0);
+    }
+    75% {
+        transform: translateY(10px);
+    }
+}
+
+.animate-bounce-down {
+    animation: bounce-down 1.5s linear infinite;
+}
