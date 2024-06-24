@@ -1,0 +1,101 @@
+.player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 250px;
+    padding: 15px 0;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow:
+        rgba(0, 0, 0, 0.05) 0px 6px 24px 0px,
+        rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+
+    .player-singer-portrait {
+        width: 200px;
+        height: 200px;
+        border-radius: 5px;
+        object-fit: cover;
+        margin-bottom: 20px;
+        cursor: pointer;
+    }
+
+    .player-title {
+        display: flex;
+        flex-direction: column;
+        width: 200px;
+        .player-song-name {
+            margin-bottom: 10px;
+            font-size: 20px;
+            line-height: 1;
+            font-weight: bold;
+        }
+        .player-singer-name {
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .player-lyric {
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .player-song-progress {
+        width: 200px;
+        margin-bottom: 25px;
+        .player-song-time {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    }
+
+    .player-opt-btns {
+        display: flex;
+        justify-content: flex-start;
+        width: 200px;
+        margin-bottom: 15px;
+
+        .player-opt-btn-container {
+            position: relative;
+            margin-right: 10px;
+
+            .player-voice-slider {
+                position: absolute;
+                top: 0px;
+                bottom: 0;
+                left: 22px;
+                margin: auto;
+                z-index: 5;
+            }
+        }
+
+        .player-opt-btn {
+            font-size: 20px;
+            cursor: pointer;
+        }
+    }
+
+    .player-start-btns {
+        display: flex;
+        justify-content: space-between;
+        width: 200px;
+
+        .player-opt-btn {
+            font-size: 25px;
+            cursor: pointer;
+        }
+    }
+
+    .player-audio {
+        display: none;
+    }
+}

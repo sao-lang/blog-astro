@@ -1,12 +1,20 @@
 ---
 import Layout from '@layout/index.astro';
+// @ts-ignore
+import Player from './player/index.vue';
+import { getSongs } from '@apis/songs';
+
+const songs = await getSongs();
 ---
-<Layout title="Welcome to Astro.">
-    <main class="home" slot="content">123</main>
+
+<Layout>
+    <aside>
+        <Player client:only="vue" songs={songs} />
+    </aside>
+    <main class="home">123</main>
 </Layout>
 
 <style lang="scss">
-
     .home {
         height: 800px;
     }

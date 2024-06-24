@@ -8,6 +8,7 @@
             "@utils/*": ["./src/utils/*"],
             "@layout/*": ["./src/layout/*"],
             "@pages/*": ["./src/pages/*"],
+            "@apis/*": ["./src/apis/*"],
         }
     }
 }

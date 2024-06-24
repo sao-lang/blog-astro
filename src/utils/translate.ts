@@ -21,9 +21,7 @@ export const exchange = (text: string, openSimple: boolean): string => {
             continue;
         }
         const index: number = indexThesaurus.indexOf(value);
-        count += 1;
         result += index === -1 ? value : targetThsaurus[index];
-        count += 1;
     }
     return result;
 };

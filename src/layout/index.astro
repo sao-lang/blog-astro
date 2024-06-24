@@ -1,7 +1,8 @@
 ---
-import Icon from '@components/icon/index.astro';
+// @ts-ignore
+import Body from './body.vue';
 interface Props {
-    title: string;
+    title?: string;
 }
 
 const { title } = Astro.props;
@@ -16,68 +17,13 @@ const { title } = Astro.props;
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
     </head>
-    <body>
-        <header class="layout-header"></header>
-        <main class="layout-main">
-            <div class="layout-main-top">
-                <span class="layout-main-typed-container">
-                    <span class="layout-main-typed-inner"></span>
-                </span>
-                <div class="animate-bounce-down layout-main-down">
-                    <Icon name="down1" className="layout-main-down-icon" />
-                </div>
-            </div>
-            <div class="layout-main-content">
-                <slot name="content" />
-            </div>
-        </main>
-        <div class="layout-setting">
-            <span class="layout-setting-other">
-                <button class="layout-transform-character">
-                    <Icon name="fanzhuanjian" className="layout-traditional-transform layout-setting-icon" />
-                    <Icon name="jianzhuanfan" className="layout-simplified-transform layout-setting-icon" />
-                </button>
-                <button class="layout-transform-mode">
-                    <Icon name="yueguang" className="layout-setting-icon" />
-                </button>
-            </span>
-            <button class="layout-gear-container">
-                <Icon name="shezhi" className="layout-setting-icon" />
-            </button>
-            <button class="layout-scrollbar-progress">
-                <span class="layout-scrollbar-progress-num">0</span>
-                <span class="layout-scroll-up">
-                    <Icon name="up" className="layout-setting-icon" />
-                </span>
-            </button>
-            <button class="layout-scroll-down">
-                <Icon name="down" className="layout-setting-icon" />
-            </button>
-        </div>
-    </body>
+    <Body client:only="vue">
+        <slot />
+    </Body>
+
+    <script src="http://at.alicdn.com/t/c/font_4412576_8odlg54520k.js"></script>
+
+    <style is:global lang="scss">
+        @use './style/global.scss';
+    </style>
 </html>
-
-<script src="http://at.alicdn.com/t/c/font_4412576_b0rn8mdd6r4.js"></script>
-<script>
-    import './ts/init'
-</script>
-<!-- 设置相关 -->
-<script>
-    import './ts/setting';
-</script>
-<!-- 滚动效果 -->
-<script>
-    import './ts/scroll';
-</script>
-<!-- 打字机效果 -->
-<script>
-    import './ts/typed';
-</script>
-
-<style is:global lang="scss">
-    @import './style/global.scss';
-</style>
-
-<style lang="scss">
-    @import './style/index.scss';
-</style>

@@ -1,4 +1,5 @@
-@import '../../style/extend.scss';
+@use '../../style/extend.scss';
+@use './dark.scss';
 button {
     border: 0;
     background-color: transparent;
@@ -52,7 +53,7 @@ button {
             border-radius: 5px;
             font-size: 20px;
             color: #fff;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.5);
         }
 
         .layout-main-down {
@@ -67,6 +68,7 @@ button {
     }
     .layout-main-content {
         min-height: 100vh;
+        padding: 0 150px;
     }
 }
 
@@ -89,6 +91,7 @@ button {
         cursor: pointer;
         margin-top: 5px;
         font-size: 20px;
+        transition: all 0.5s;
         &:hover {
             @extend .layout-setting-icon-active;
         }
