@@ -4,6 +4,7 @@ import Layout from '@layout/index.astro';
 import Player from './player/index.vue';
 import Slider from '@components/slider/index.vue';
 import { getSongs } from '@apis/songs';
+const percent = 0;
 
 const songs = await getSongs();
 ---
@@ -11,9 +12,9 @@ const songs = await getSongs();
 <Layout>
     <aside>
         <Player client:only="vue" songs={songs} />
-        <Slider client:only="vue" />
+        <!-- <Slider client:only="vue" percent={percent} /> -->
     </aside>
-    <main class="home">123</main>
+    <main class="home"></main>
 </Layout>
 
 <style lang="scss">

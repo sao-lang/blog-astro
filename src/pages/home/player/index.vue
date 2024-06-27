@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Icon from '@components/icon/index.vue';
 import Progress from '@components/progress/index.vue';
+import Slider from '@components/slider/index.vue';
 
 import { handleLyric, throttle } from '@utils/index';
 
@@ -86,6 +87,18 @@ const handleAudioLoadedmetadata = (e: Event) => {
     console.log({ volume: target.volume })
 }
 
+const handlePercentChange = (value: number) => {
+    percent.value = value;
+    throttle(() => {
+        (audioRef.value as HTMLAudioElement).currentTime = totalTime.value * value;
+        const formattedCurrentTime = formatDuration(totalTime.value * value);
+        const newLrc = current.value.lyric.find(({ time }) => time.includes(formattedCurrentTime))?.lyric ?? '';
+        if (newLrc && newLrc !== lyric.value) {
+            lyric.value = newLrc;
+        }
+    }, 1000)();
+}
+
 const formatDuration = (duration: number) => {
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration - minutes * 60);
@@ -109,9 +122,8 @@ const formatDuration = (duration: number) => {
                 <span @click="() => showVoiceSlider = !showVoiceSlider">
                     <Icon name="voice" class="player-opt-btn" />
                 </span>
-                <Progress :percent="volume"
-                    @change="percent => { (audioRef as HTMLAudioElement).volume = percent; volume = percent }" width="90px"
-                    height="6px" class="player-voice-slider" v-show="showVoiceSlider" />
+                <Progress :percent="volume" @change="handlePercentChange" width="90px" height="6px"
+                    class="player-voice-slider" v-show="showVoiceSlider" />
             </span>
         </div>
         <img class="player-singer-portrait" :src="current.singerPhoto" />
@@ -121,9 +133,11 @@ const formatDuration = (duration: number) => {
             <span class="player-lyric">{{ lyric ?? '当前暂无歌词' }}</span>
         </div>
         <div class="player-song-progress">
-            <Progress :percent="percent"
+            <!-- <Progress :percent="percent"
                 @change="value => { percent = value; (audioRef as HTMLAudioElement).currentTime = totalTime * percent }"
-                width="100%" />
+                width="100%" /> -->
+
+            <Slider :percent="percent" @update:percent="handlePercentChange" />
             <div class="player-song-time">
                 <span>{{ formatDuration(totalTime * percent) }}</span>
                 <span>{{ formatDuration(totalTime) }}</span>

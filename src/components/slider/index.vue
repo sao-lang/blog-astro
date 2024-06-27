@@ -1,112 +1,122 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, type PropType } from 'vue';
 
-const content = ref<HTMLDivElement>();
+const props = defineProps({
+    percent: {
+        type: Number as PropType<number>,
+        default: 0,
+    }
+});
+const emits = defineEmits(['update:percent'])
+
 const bar = ref<HTMLDivElement>();
 const dot = ref<HTMLDivElement>();
-const progress = ref<HTMLDivElement>();
 const dotLeft = ref(0);
-const progressWidth = ref(0);
-const percent = ref(0);
+const percent = computed({
+    get() {
+        const percent = props.percent;
+        return percent < 0 ? 0 : percent > 1 ? 1 : percent;
+    },
+    set(value) {
+        emits('update:percent', value);
+    }
+});
+const isMouseDown = ref(false);
 
-
-onMounted(() => {
-    //  获取所有的节点元素
-    // var content = document.getElementsByClassName('content')[0] as HTMLElement;
-    // var bar = document.getElementsByClassName('bar')[0] as HTMLElement;
-    // var progress = document.getElementsByClassName('progress')[0] as HTMLElement;
-    // var dot = document.getElementsByClassName('dot')[0] as HTMLElement;
-    // var p = document.getElementsByTagName('p')[0] as HTMLElement;
-    // /*
-    // * offsetWidth 获取当前节点的宽度 （width + border + padding）
-    // **/
-    // // 总长度减去原点覆盖的部分
-    // var rest = bar.offsetWidth - dot.offsetWidth
-    // // 鼠标按下事件
-    // dot.onmousedown = function (ev) {
-    //     /*
-    //     * offsetLeft 获取的是相对于父对象的左边距, 返回的是数值， 没有单位
-    //     */
-    //     let dotL = dot.offsetLeft
-    //     let e = ev || window.event //兼容性
-    //     /*
-    //     * clientX 事件属性返回当事件被触发时鼠标指针向对于浏览器页面（或客户区）的水平坐标。
-    //     */
-    //     let mouseX = e.clientX //鼠标按下的位置
-    //     window.onmousemove = function (ev) {
-    //         let e = ev || window.event
-    //         // 浏览器当前位置减去鼠标按下的位置
-    //         let moveL = e.clientX - mouseX //鼠标移动的距离
-
-    //         // 保存newL是必要的    
-    //         let newL = dotL + moveL //left值
-    //         // 判断最大值和最小值
-    //         if (newL < 0) {
-    //             newL = 0
-    //         }
-    //         if (newL >= rest) {
-    //             newL = rest
-    //         }
-    //         // 改变left值
-    //         dot.style.left = newL + 'px'
-    //         // 计算比例
-    //         let bili = newL / rest * 100
-    //         progress.style.width = 500 * Math.ceil(bili) / 100 + 'px';
-    //         return false //取消默认事件
-    //     }
-    //     window.onmouseup = function () {
-    //         window.onmousemove = null //解绑移动事件
-    //         return false
-    //     }
-    //     return false
-    // };
-    // // 点击音量条
-    // bar.onclick = function (ev) {
-    //     let left = ev.clientX - content.offsetLeft - dot.offsetWidth / 2
-    //     if (left < 0) {
-    //         left = 0
-    //     }
-    //     if (left >= rest) {
-    //         left = rest
-    //     }
-    //     dot.style.left = left + 'px'
-    //     let bili = left / rest * 100
-    //     p.innerHTML = Math.ceil(bili) + '%'
-    //     progress.style.width = 500 * Math.ceil(bili) / 100 + 'px';
-    //     return false
-    // }
-    init();
+onBeforeUnmount(() => {
+    removeEvent();
 })
-
-const init = () => {
-    console.log({ dot: dot.value, bar: bar.value })
-    dot.value?.addEventListener('mousedown', (dotEvent) => {
-        const onMousemove = (e: MouseEvent) => handleMouseMove(e, dotEvent.clientX)
-        document.addEventListener('mousemove', onMousemove);
-        document.addEventListener('mouseup', () => {
-            document.removeEventListener('mousemove', onMousemove);
-        })
-    })
+const removeEvent = () => {
+    document.removeEventListener('mouseup', handleDocumentMouseUp);
 }
-
-const handleMouseMove = (e: MouseEvent, clientX: number) => {
-    const offset = e.clientX - clientX;
-    const totalOffset = offset + dot.value!.offsetLeft;
-    const totalWidth = bar.value!.offsetWidth - dot.value!.offsetWidth;
-    dotLeft.value = totalOffset < 0 ? 0 : totalOffset >= totalWidth ? totalWidth : totalOffset;
-    percent.value = Number((dotLeft.value / bar.value!.offsetWidth * 100).toFixed(2));
+const handleDotMouseDown = () => {
+    isMouseDown.value = true;
+    document.addEventListener('mousemove', handleDotMouseMove);
+    document.addEventListener('mouseup', handleDocumentMouseUp)
+}
+const handleDotMouseMove = (e: MouseEvent) => {
+    e.preventDefault();
+    const [{ width, left }] = bar.value?.getClientRects()!;
+    const x = e.pageX - left;
+    const maxX = width - dot.value!.offsetWidth;
+    dotLeft.value = x < 0 ? 0 : x > maxX ? maxX : x;
+    percent.value = Number((dotLeft.value / maxX).toFixed(4));
+}
+const handleDocumentMouseUp = (e: MouseEvent) => {
+    e.preventDefault();
+    isMouseDown.value = false;
+    document.removeEventListener('mousemove', handleDotMouseMove);
+}
+const handleBarClick = (e: MouseEvent) => {
+    const [{ width, left }] = bar.value?.getClientRects()!;
+    const x = e.pageX - left;
+    const maxX = width - dot.value!.offsetWidth;
+    dotLeft.value = x < 0 ? 0 : x > maxX ? maxX : x;
+    percent.value = Number((dotLeft.value / maxX).toFixed(4));
 }
 
 </script>
 <template>
     <div class="content">
-        <p>0%</p>
-        <div class="bar" ref="bar">
-            <div class="progress" :style="{ width: `${percent}%` }"></div>
-            <div ref="dot" class="dot" :style="{ left: `${dotLeft}px` }"></div>
+        <div class="bar" ref="bar" @click="handleBarClick">
+            <div :class="['progress', { 'add-transition': !isMouseDown }]" :style="{ width: `${percent * 100}%` }"></div>
+            <div ref="dot" :class="['dot', { 'add-transition': !isMouseDown, 'add-hover': isMouseDown }]"
+                :style="{ left: `${percent === 0 ? 0 : `calc(${percent * 100}% - ${dot?.offsetWidth ?? 0}px)`}` }"
+                @mousedown="handleDotMouseDown">
+            </div>
         </div>
     </div>
 </template>
-<style lang="scss">
-@use './index.scss';
+<style lang="scss" scoped>
+.content {
+    width: 100%;
+    height: 5px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.bar {
+    height: 100%;
+    border-radius: 10px;
+    background: #e4e7ed;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    cursor: pointer;
+}
+
+.progress {
+    height: 100%;
+    border-radius: 10px;
+    background: #409eff;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border: 1px solid #409eff;
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    margin: auto 0;
+    border-radius: 50%;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    &:hover {
+        outline: 5px solid #fff;
+    }
+}
+
+.add-transition {
+    transition: all 0.3s;
+}
+
+.add-hover {
+    outline: 5px solid #fff;
+}
 </style>
