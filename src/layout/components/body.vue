@@ -44,6 +44,7 @@ const initTyped = (words?: string[]) => {
 const initScrollBar = () => {
     scrollbar.value = ScrollBar.init(scrollbarRef.value!);
     scrollbar.value.addListener(({ offset, limit }) => {
+        console.log('scroll')
         scrollBarProgress.value = ((offset.y / limit.y) * 100).toFixed();
     });
 }
@@ -143,6 +144,6 @@ const handleChangeSimplified = () => {
 
 
 <style lang="scss" scoped>
-@use './style/index.scss';
-@use './style/dark.scss';
+@use '../style/index.scss';
+@use '../style/dark.scss';
 </style>

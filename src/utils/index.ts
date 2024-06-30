@@ -88,6 +88,12 @@ export const throttle = <T extends Fn>(func: T, wait = 1000, options?: ThrottleO
     return throttled;
 };
 
+const transformLyricTime = (time: string) => {
+    const min = Number(time.slice(0, 2));
+    const s = Number(time.slice(3, time.length));
+    return Number.parseFloat((min * 60 + s).toString());
+};
+
 export const handleLyric = (lrc?: string) => {
     if (!lrc) {
         return [];
@@ -95,17 +101,18 @@ export const handleLyric = (lrc?: string) => {
     const lrcArr = lrc.split('\n');
     const regex = /\[(\d{2}:\d{2}\.\d{2})\](.+)/g;
     return lrcArr
-        .map(lrc => {
+        .map((lrc) => {
             const match = [...lrc.matchAll(regex)][0];
             if (!match) {
                 return undefined;
             }
-            const time = match[1];
+            const originalTime = match[1];
+
             const lyric = match[2];
-            return { time, lyric };
+            return { time: transformLyricTime(originalTime), lyric };
         })
         .filter(Boolean) as {
-        time: string;
+        time: number;
         lyric: string;
     }[];
 };
