@@ -91,7 +91,7 @@ export const throttle = <T extends Fn>(func: T, wait = 1000, options?: ThrottleO
 const transformLyricTime = (time: string) => {
     const min = Number(time.slice(0, 2));
     const s = Number(time.slice(3, time.length));
-    return Number.parseFloat((min * 60 + s).toString());
+    return min * 60 + s;
 };
 
 export const handleLyric = (lrc?: string) => {

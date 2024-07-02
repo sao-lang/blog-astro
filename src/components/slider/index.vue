@@ -23,12 +23,13 @@ const percent = computed({
 });
 const isMouseDown = ref(false);
 
-watch(() => percent.value, () => {
-    dotLeft.value = (bar.value!.offsetWidth - dot.value!.offsetWidth / 2) * percent.value;
-})
+// watch(() => percent.value, () => {
+//     dotLeft.value = (bar.value!.offsetWidth) * percent.value;
+// });
+
 onBeforeUnmount(() => {
     removeEvent();
-})
+});
 
 const removeEvent = () => {
     document.removeEventListener('mouseup', handleDocumentMouseUp);
@@ -59,7 +60,7 @@ const handleDocumentMouseUp = (e: MouseEvent) => {
     e.preventDefault();
     isMouseDown.value = false;
     window.removeEventListener('mousemove', handleDotMouseMove);
-    emits('mouseup');
+    emits('mouseup', percent.value);
 }
 const handleBarClick = (e: MouseEvent) => {
     handleProcessWidthChange(e);
@@ -72,7 +73,7 @@ const handleBarClick = (e: MouseEvent) => {
         <div class="progress-wrapper">
             <div :class="['progress', { 'add-transition': !isMouseDown }]" :style="{ width: `${percent * 100}%` }" />
         </div>
-        <div ref="dot" :style="{ left: `${dotLeft}px` }"
+        <div ref="dot" :style="{ left: `${percent * 100}%` }"
             :class="['dot', { 'add-transition': !isMouseDown, 'add-hover': isMouseDown }]"
             @mousedown="handleDotMouseDown" />
     </div>
@@ -101,9 +102,6 @@ const handleBarClick = (e: MouseEvent) => {
     }
 
     .dot {
-        // width: 10px;
-        // height: 10px;
-        // border: 1px solid #409eff;
         position: absolute;
         bottom: 0;
         top: 0;
