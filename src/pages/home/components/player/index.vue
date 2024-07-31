@@ -24,9 +24,9 @@
     const lyric = ref(current.value?.lyrics[0]?.line ?? '暂无歌词');
 
     watch(
-        () => percent.value,
-        percent => {
-            console.log({ percent });
+        () => volume.value,
+        volume => {
+            audioRef.value!.volume = volume;
         },
     );
 
@@ -36,7 +36,6 @@
     const handleSliderMouseUp = (value: number) => {
         isMouseDown.value = false;
         const currentTime = Math.floor(totalTime.value * value);
-        console.log({ currentTime, totalTime: totalTime.value, value });
         (audioRef.value as HTMLAudioElement).currentTime = currentTime;
     };
     const handleSongChange = (type: 'prev' | 'next') => {
@@ -65,9 +64,7 @@
             if (isMouseDown.value) {
                 return;
             }
-            console.log(123);
             const currentTime = (e.target as HTMLAudioElement).currentTime;
-            // console.log({ currentTime });
             percent.value = Number((currentTime / totalTime.value).toFixed(4));
             const newLrc = getLrcFromCurrentTime(currentTime, current.value.lyrics);
             lyric.value = newLrc;
@@ -76,16 +73,17 @@
         { leading: true, trailing: false },
     );
     const handleAudioEnded = (e: Event) => {
-        // const target = e.target as HTMLAudioElement;
-        // if (!isSingleLoop.value) {
-        //     currentIndex.value = currentIndex.value === props.songs.length - 1 ? 0 : currentIndex.value + 1;
-        //     target.src = current.value.source;
-        //     target.load();
-        // }
-        // lyric.value = current.value?.lyric[0]?.lyric ?? '暂无歌词';
-        // isPlayed.value = true;
-        // target.play();
-        // percent.value = 0;
+        const target = e.target as HTMLAudioElement;
+        if (!isSingleLoop.value) {
+            currentIndex.value =
+                currentIndex.value === props.songs.length - 1 ? 0 : currentIndex.value + 1;
+            target.src = current.value.source;
+            target.load();
+        }
+        lyric.value = current.value?.lyrics[0]?.line ?? '暂无歌词';
+        isPlayed.value = true;
+        target.play();
+        percent.value = 0;
     };
     const handleAudioLoadedmetadata = (e: Event) => {
         const target = e.target as HTMLAudioElement;
@@ -101,7 +99,7 @@
 
 <template>
     <div class="player">
-        <div class="player-song-info animate-fade-out translate-out">
+        <div class="player-song-info">
             <div class="player-opt-btns">
                 <span
                     @click="() => (isSingleLoop = !isSingleLoop)"
@@ -114,8 +112,11 @@
                     <span @click="() => (showVoiceSlider = !showVoiceSlider)">
                         <Icon name="voice" class="player-opt-btn" />
                     </span>
-                    <!-- <Progress :percent="volume" @change="handlePercentChange" width="90px" height="6px"
-                    class="player-voice-slider" v-show="showVoiceSlider" /> -->
+                    <Slider
+                        v-model:percent="volume"
+                        class="player-voice-slider"
+                        v-show="showVoiceSlider"
+                    />
                 </span>
             </div>
             <img class="player-singer-portrait" :src="current.singerPhoto" />
@@ -161,7 +162,7 @@
             </audio>
         </div>
 
-        <div class="player-lyrics animate-fade-in translate-in"></div>
+        <div class="player-lyrics"></div>
     </div>
 </template>
 

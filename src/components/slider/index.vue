@@ -41,8 +41,8 @@
     const handleDotMouseDown = (e: MouseEvent) => {
         e.preventDefault();
         isMouseDown.value = true;
-        window.addEventListener('mousemove', handleDotMouseMove);
-        window.addEventListener('mouseup', handleDocumentMouseUp);
+        document.addEventListener('mousemove', handleDotMouseMove);
+        document.addEventListener('mouseup', handleDocumentMouseUp);
         handleMouseDown();
     };
     const handleDotMouseMove = (e: MouseEvent) => {
@@ -52,17 +52,19 @@
     const handleDocumentMouseUp = (e: MouseEvent) => {
         e.preventDefault();
         isMouseDown.value = false;
-        window.removeEventListener('mousemove', handleDotMouseMove);
+        document.removeEventListener('mousemove', handleDotMouseMove);
         handleMouseUp();
     };
     const handleBarMouseUp = (e: MouseEvent) => {
         handleProcessWidthChange(e);
         handleMouseUp();
     };
-    const handleMouseDown = () => {
+    const handleMouseDown = (e?: MouseEvent) => {
+        e?.stopPropagation();
         emits('mousedown');
     };
-    const handleMouseUp = () => {
+    const handleMouseUp = (e?: MouseEvent) => {
+        e?.stopPropagation();
         nextTick(() => {
             emits('mouseup', percent.value);
         });
