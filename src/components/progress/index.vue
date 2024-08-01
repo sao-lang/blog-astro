@@ -1,55 +1,96 @@
-<script setup lang="ts">
-    import { ref, type CSSProperties, watch } from 'vue';
+<script lang="ts" setup>
+    import { computed, onBeforeUnmount, ref, type PropType, watch, nextTick } from 'vue';
 
-    const props = withDefaults(
-        defineProps<{
-            width?: number | string;
-            height?: number | string;
-            thumbColor?: string;
-            trackColor?: string;
-            percent?: number;
-            trackStyle?: CSSProperties;
-            thumbStyle?: CSSProperties;
-            direction?: 'x' | 'y';
-        }>(),
-        { width: '150px', height: '6px', percent: 0, direction: 'x' },
-    );
+    const props = defineProps({
+        percent: {
+            type: Number as PropType<number>,
+            default: 0,
+        },
+    });
+    const emits = defineEmits(['update:percent', 'mousedown', 'mouseup', 'mousemove', 'change']);
 
-    const trackRef = ref<HTMLDivElement>();
+    const bar = ref<HTMLDivElement>();
+    const dot = ref<HTMLDivElement>();
+    const percent = computed({
+        get() {
+            const percent = props.percent;
+            return percent < 0 ? 0 : percent > 1 ? 1 : percent;
+        },
+        set(value) {
+            emits('update:percent', value);
+        },
+    });
+    const isMouseDown = ref(false);
 
-    const emits = defineEmits(['change', 'update:percent']);
+    onBeforeUnmount(() => {
+        removeEvent();
+    });
 
-    const handleClickTrack = (e: MouseEvent) => {
-        const percent = Number((e.offsetX / trackRef.value?.offsetWidth!).toFixed(4));
-        emits('change', percent);
-        emits('update:percent', percent);
+    const removeEvent = () => {
+        document.removeEventListener('mouseup', handleDocumentMouseUp);
+    };
+    const handleProcessWidthChange = (e: MouseEvent) => {
+        const [{ width, left }] = bar.value?.getClientRects()!;
+        const x = e.pageX - left;
+        const maxX = width - dot.value!.offsetWidth;
+        const offsetX = x < 0 ? 0 : x > maxX ? maxX : x;
+        const value = Number((offsetX / maxX).toFixed(4));
+        percent.value = value;
+        emits('change', value);
+    };
+    const handleDotMouseDown = (e: MouseEvent) => {
+        e.preventDefault();
+        isMouseDown.value = true;
+        document.addEventListener('mousemove', handleDotMouseMove);
+        document.addEventListener('mouseup', handleDocumentMouseUp);
+        handleMouseDown();
+    };
+    const handleDotMouseMove = (e: MouseEvent) => {
+        handleProcessWidthChange(e);
+        emits('mousemove', percent.value);
+    };
+    const handleDocumentMouseUp = (e: MouseEvent) => {
+        e.preventDefault();
+        isMouseDown.value = false;
+        document.removeEventListener('mousemove', handleDotMouseMove);
+        handleMouseUp();
+    };
+    const handleBarMouseUp = (e: MouseEvent) => {
+        handleProcessWidthChange(e);
+        handleMouseUp();
+    };
+    const handleMouseDown = (e?: MouseEvent) => {
+        e?.stopPropagation();
+        emits('mousedown');
+    };
+    const handleMouseUp = (e?: MouseEvent) => {
+        e?.stopPropagation();
+        nextTick(() => {
+            emits('mouseup', percent.value);
+        });
     };
 </script>
 <template>
     <div
-        :style="{
-            width: typeof width === 'number' ? width + 'px' : width,
-            height: typeof height === 'number' ? height + 'px' : height,
-            backgroundColor: trackColor ?? 'rgba(0, 0, 0, .5)',
-            ...(trackStyle || {}),
-        }"
-        class="progress-track"
-        @click="handleClickTrack"
-        ref="trackRef"
+        class="bar"
+        ref="bar"
+        @mousedown="handleMouseDown"
+        @mouseup="handleBarMouseUp"
     >
-        <div
-            class="progress-thumb"
-            :style="{
-                width: direction === 'x' ? percent * 100 + '%' : '100%',
-                height: direction === 'y' ? percent * 100 + '%' : '100%',
-                backgroundColor: thumbColor ?? 'rgba(222, 222, 222, .75)',
-                ...(thumbStyle || {}),
-            }"
-        >
+        <div class="progress-wrapper">
+            <div
+                :class="['progress', { 'add-transition': !isMouseDown }]"
+                :style="{ width: `${percent * 100}%` }"
+            />
         </div>
+        <div
+            ref="dot"
+            :style="{ left: `${percent * 100}%` }"
+            :class="['dot', { 'add-transition': !isMouseDown, 'add-hover': isMouseDown }]"
+            @mousedown="handleDotMouseDown"
+        />
     </div>
 </template>
-
 <style lang="scss" scoped>
     @use './index.scss';
 </style>

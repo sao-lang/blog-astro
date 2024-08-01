@@ -1,9 +1,9 @@
 <script setup lang="ts">
-    import Icon from '@components/icon/index.vue';
-    import Slider from '@components/slider/index.vue';
-    import { throttle } from '@utils/index';
+    import Icon from '@/components/icon/index.vue';
+    import Progress from '@/components/progress/index.vue';
+    import { throttle } from '@/utils';
     import { computed, onMounted, ref, watch } from 'vue';
-    import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, handleLyric } from './helper';
+    import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
     import type { Song } from './types';
 
     const props = withDefaults(defineProps<{ songs: Song[] }>(), {});
@@ -19,7 +19,7 @@
     const percent = ref(0);
     const current = computed(() => {
         const currentSong = props.songs[currentIndex.value];
-        return { ...currentSong, lyrics: handleLyric(currentSong.lyric) };
+        return { ...currentSong, lyrics: parseLyric(currentSong?.lyric) };
     });
     const lyric = ref(current.value?.lyrics[0]?.line ?? '暂无歌词');
 
@@ -112,7 +112,7 @@
                     <span @click="() => (showVoiceSlider = !showVoiceSlider)">
                         <Icon name="voice" class="player-opt-btn" />
                     </span>
-                    <Slider
+                    <Progress
                         v-model:percent="volume"
                         class="player-voice-slider"
                         v-show="showVoiceSlider"
@@ -126,7 +126,7 @@
                 <span class="player-lyric">{{ lyric ?? '当前暂无歌词' }}</span>
             </div>
             <div class="player-song-progress">
-                <Slider
+                <Progress
                     v-model:percent="percent"
                     @mouseup="handleSliderMouseUp"
                     @mousedown="handleSliderMouseDown"

@@ -1,9 +1,8 @@
 ---
-import Layout from '@layout/index.astro';
+import Layout from '@/layout/index.astro';
 // @ts-ignore
 import Player from './components/player/index.vue';
-import { getSongs } from '@apis/songs';
-const percent = 0;
+import { getSongs } from '@/apis/songs';
 
 const songs = await getSongs();
 ---
@@ -11,7 +10,6 @@ const songs = await getSongs();
 <Layout>
     <aside>
         <Player client:only="vue" songs={songs} />
-        <!-- <Slider client:only="vue" percent={percent} /> -->
     </aside>
     <main class="home"></main>
 </Layout>

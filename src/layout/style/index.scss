@@ -1,4 +1,4 @@
-@use '../../style/extend.scss';
+// @use '../../style/extend.scss';
 @use './dark.scss';
 button {
     border: 0;
@@ -119,11 +119,11 @@ button {
                 display: flex;
             }
             .layout-scrollbar-progress-num {
-                @extend .none;
+                display: none;
             }
         }
         .layout-scroll-up {
-            @extend .none;
+            display: none;
             justify-content: center;
             align-items: center;
             height: 100%;

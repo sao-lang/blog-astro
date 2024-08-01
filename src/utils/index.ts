@@ -12,7 +12,11 @@ export type FnReturnType<K extends Fn> = (...args: FnArgsType<K>) => ReturnType<
  * @param {number} wait 间隔时间
  * @param {boolean} immediate 是否立即执行
  */
-export const debounce = <T extends Fn>(fn: T, wait?: number, immediate?: boolean): FnReturnType<T> & { cancel: () => void } => {
+export const debounce = <T extends Fn>(
+    fn: T,
+    wait?: number,
+    immediate?: boolean,
+): FnReturnType<T> & { cancel: () => void } => {
     let timeout: NodeJS.Timeout | null;
     let result: ReturnType<T>;
     function debounced(this: unknown, ...args: FnArgsType<T>) {
@@ -50,7 +54,11 @@ type ThrottleOptions = { leading?: boolean; trailing?: boolean };
  * @param {number} wait 间隔时间
  * @param {ThrottleOptions} options leading  开始就执行 trailing 最后也执行，两者相斥
  */
-export const throttle = <T extends Fn>(func: T, wait = 1000, options?: ThrottleOptions): FnReturnType<T> & { cancel: () => void } => {
+export const throttle = <T extends Fn>(
+    func: T,
+    wait = 1000,
+    options?: ThrottleOptions,
+): FnReturnType<T> & { cancel: () => void } => {
     let timeout: NodeJS.Timeout | null = null;
     let previous = 0;
     let result: ReturnType<T>;
@@ -88,31 +96,28 @@ export const throttle = <T extends Fn>(func: T, wait = 1000, options?: ThrottleO
     return throttled;
 };
 
-const transformLyricTime = (time: string) => {
-    const min = Number(time.slice(0, 2));
-    const s = Number(time.slice(3, time.length));
-    return min * 60 + s;
+type Lyric = {
+    time: number;
+    lyric: string;
 };
 
-export const handleLyric = (lrc?: string) => {
+export const parseLyric = (lrc?: string) => {
     if (!lrc) {
         return [];
     }
     const lrcArr = lrc.split('\n');
     const regex = /\[(\d{2}:\d{2}\.\d{2})\](.+)/g;
     return lrcArr
-        .map((lrc) => {
+        .map(lrc => {
             const match = [...lrc.matchAll(regex)][0];
             if (!match) {
                 return undefined;
             }
             const originalTime = match[1];
-
             const lyric = match[2];
-            return { time: transformLyricTime(originalTime), lyric };
+            const min = Number(originalTime.slice(0, 2));
+            const s = Number(originalTime.slice(3, originalTime.length));
+            return { time: min * 60 + s, lyric };
         })
-        .filter(Boolean) as {
-        time: number;
-        lyric: string;
-    }[];
+        .filter(Boolean) as Lyric[];
 };

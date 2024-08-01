@@ -1,100 +1,83 @@
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue';
-import ScrollBar from 'smooth-scrollbar';
-import Typed from 'typed.js';
-import Icon from '@components/icon/index.vue';
-import { BrowserStorage, exchange, translate } from '@utils/index';
-const settingValues = reactive<{ isSimplified: boolean; isDark: boolean }>({ isSimplified: true, isDark: false });
-
-const typedRef = ref<HTMLSpanElement>();
-const typed = ref<Typed>();
-const scrollbarRef = ref<HTMLDivElement>();
-const scrollbar = ref<ScrollBar>();
-
-const scrollBarProgress = ref('0');
-const showSetting = ref(false);
-
-const typedWords = ref<string[]>(['去国十年老尽，少年心', '老夫聊发少年狂']);
-
-onMounted(() => {
-    initStorage();
-    initTyped();
-    initScrollBar();
-});
-const initStorage = () => {
-    window.storage = new BrowserStorage();
-    settingValues.isSimplified = window.storage.getItem('isSimplified') as boolean;
-    settingValues.isDark = window.storage.getItem('isDark') as boolean;
-    if (settingValues.isSimplified) {
-        translate(false);
-    }
-}
-const initTyped = (words?: string[]) => {
-    if (typed.value) {
-        typed.value.destroy();
-    }
-    typed.value = new Typed(typedRef.value, {
-        strings: words || typedWords.value,
-        typeSpeed: 100,
-        backSpeed: 100,
-        loop: true,
-        backDelay: 5000,
+    import { onMounted, reactive, ref } from 'vue';
+    import ScrollBar from 'smooth-scrollbar';
+    import Typed from 'typed.js';
+    import Icon from '@/components/icon/index.vue';
+    import { BrowserStorage, exchange, translate } from '@/utils';
+    const settingValues = reactive<{ isSimplified: boolean; isDark: boolean }>({
+        isSimplified: true,
+        isDark: false,
     });
-}
-const initScrollBar = () => {
-    scrollbar.value = ScrollBar.init(scrollbarRef.value!);
-    scrollbar.value.addListener(({ offset, limit }) => {
-        console.log('scroll')
-        scrollBarProgress.value = ((offset.y / limit.y) * 100).toFixed();
+
+    const typedRef = ref<HTMLSpanElement>();
+    const typed = ref<Typed>();
+    const scrollbarRef = ref<HTMLDivElement>();
+    const scrollbar = ref<ScrollBar>();
+
+    const scrollBarProgress = ref('0');
+    const showSetting = ref(false);
+
+    const typedWords = ref<string[]>(['去国十年老尽，少年心', '老夫聊发少年狂']);
+
+    onMounted(() => {
+        initStorage();
+        initTyped();
+        initScrollBar();
     });
-}
+    const initStorage = () => {
+        window.storage = new BrowserStorage();
+        settingValues.isSimplified = window.storage.getItem('isSimplified') as boolean;
+        settingValues.isDark = window.storage.getItem('isDark') as boolean;
+        if (settingValues.isSimplified) {
+            translate(false);
+        }
+    };
+    const initTyped = (words?: string[]) => {
+        if (typed.value) {
+            typed.value.destroy();
+        }
+        typed.value = new Typed(typedRef.value, {
+            strings: words || typedWords.value,
+            typeSpeed: 100,
+            backSpeed: 100,
+            loop: true,
+            backDelay: 5000,
+        });
+    };
+    const initScrollBar = () => {
+        scrollbar.value = ScrollBar.init(scrollbarRef.value!);
+        scrollbar.value.addListener(({ offset, limit }) => {
+            scrollBarProgress.value = ((offset.y / limit.y) * 100).toFixed();
+        });
+    };
 
-const exchangeTypedWords = (openSimple: boolean) => {
-    for (let index = 0; index < typedWords.value.length; index++) {
-        typedWords.value[index] = exchange(typedWords.value[index], openSimple);
-    }
-    initTyped(typedWords.value);
-};
-
-const handleClickDownIcon = () => {
-    const mainContainer = document.querySelector('.layout-main') as HTMLDivElement;
-    const headerContainer = document.querySelector('.layout-header') as HTMLDivElement;
-    const limit = mainContainer.offsetHeight - headerContainer.offsetHeight;
-    scrollbar.value!.scrollTo(0, limit, 500);
-}
-const handleClickSettingIcon = () => {
-    showSetting.value = !showSetting.value;
-}
-const handleClickScroll = (type: 'down' | 'up') => {
-    if (type === 'up') {
-        scrollbar.value!.scrollTo(0, 0, 500);
-    } else {
-        scrollbar.value!.scrollTo(0, scrollbar.value!.limit.y, 500);
-    }
-}
-const handleChangeMode = () => {
-    if (settingValues.isDark) {
-        window.storage.setItem('isDark', false);
-        settingValues.isDark = false;
-    } else {
-        window.storage.setItem('isDark', true);
-        settingValues.isDark = true;
-    }
-}
-const handleChangeSimplified = () => {
-    if (settingValues.isSimplified) {
-        settingValues.isSimplified = false;
-        window.storage.setItem('isSimplified', false);
-        translate(true);
-        exchangeTypedWords(true);
-    } else {
-        settingValues.isSimplified = true;
-        window.storage.setItem('isSimplified', true);
-        translate(false);
-        exchangeTypedWords(false);
-
-    }
-}
+    const handleClickDownIcon = () => {
+        const mainContainer = document.querySelector('.layout-main') as HTMLDivElement;
+        const headerContainer = document.querySelector('.layout-header') as HTMLDivElement;
+        const limit = mainContainer.offsetHeight - headerContainer.offsetHeight;
+        scrollbar.value!.scrollTo(0, limit, 500);
+    };
+    const handleClickSettingIcon = () => {
+        showSetting.value = !showSetting.value;
+    };
+    const handleClickScroll = (type: 'down' | 'up') => {
+        scrollbar.value!.scrollTo(0, type === 'up' ? 0 : scrollbar.value!.limit.y, 500);
+    };
+    const handleChangeMode = () => {
+        const { isDark } = settingValues;
+        window.storage.setItem('isDark', !isDark);
+        settingValues.isDark = !isDark;
+    };
+    const handleChangeSimplified = () => {
+        const { isSimplified } = settingValues;
+        settingValues.isSimplified = !isSimplified;
+        window.storage.setItem('isSimplified', !isSimplified);
+        translate(isSimplified);
+        for (let index = 0; index < typedWords.value.length; index++) {
+            typedWords.value[index] = exchange(typedWords.value[index], isSimplified);
+        }
+        initTyped(typedWords.value);
+    };
 </script>
 
 <template>
@@ -116,17 +99,31 @@ const handleChangeSimplified = () => {
         <div class="layout-setting">
             <span class="layout-setting-other" :style="{ right: !showSetting ? '-60px' : '20px' }">
                 <button class="layout-transform-character" @click="handleChangeSimplified">
-                    <Icon name="fanzhuanjian" :class="['layout-traditional-transform', 'layout-setting-icon']"
-                        v-if="settingValues.isSimplified" />
-                    <Icon name="jianzhuanfan" class="layout-simplified-transform layout-setting-icon" v-else />
+                    <Icon
+                        name="fanzhuanjian"
+                        :class="['layout-traditional-transform', 'layout-setting-icon']"
+                        v-if="settingValues.isSimplified"
+                    />
+                    <Icon
+                        name="jianzhuanfan"
+                        class="layout-simplified-transform layout-setting-icon"
+                        v-else
+                    />
                 </button>
-                <button :class="['layout-transform-mode', { 'layout-setting-icon-active': settingValues.isDark }]"
-                    @click="handleChangeMode">
+                <button
+                    :class="[
+                        'layout-transform-mode',
+                        { 'layout-setting-icon-active': settingValues.isDark },
+                    ]"
+                    @click="handleChangeMode"
+                >
                     <Icon name="yueguang" class="layout-setting-icon" />
                 </button>
             </span>
-            <button :class="['layout-gear-container', { 'layout-setting-icon-active': showSetting }]"
-                @click="handleClickSettingIcon">
+            <button
+                :class="['layout-gear-container', { 'layout-setting-icon-active': showSetting }]"
+                @click="handleClickSettingIcon"
+            >
                 <Icon name="shezhi" class="layout-setting-icon" />
             </button>
             <button class="layout-scrollbar-progress">
@@ -142,8 +139,7 @@ const handleChangeSimplified = () => {
     </div>
 </template>
 
-
 <style lang="scss" scoped>
-@use '../style/index.scss';
-@use '../style/dark.scss';
+    @use '../style/index.scss';
+    @use '../style/dark.scss';
 </style>

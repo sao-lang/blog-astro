@@ -4,11 +4,12 @@
         "jsx": "preserve",
         "baseUrl": ".",
         "paths": {
-            "@components/*": ["./src/components/*"],
-            "@utils/*": ["./src/utils/*"],
-            "@layout/*": ["./src/layout/*"],
-            "@pages/*": ["./src/pages/*"],
-            "@apis/*": ["./src/apis/*"],
+            "@/*": ["src/*"],
+            "@/components/*": ["./src/components/*"],
+            "@/utils/*": ["./src/utils/*"],
+            "@/layout/*": ["./src/layout/*"],
+            "@/pages/*": ["./src/pages/*"],
+            "@/apis/*": ["./src/apis/*"]
         }
     }
 }

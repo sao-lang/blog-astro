@@ -27,7 +27,7 @@ const transformLyricTime = (time: string) => {
     return min * 60 + s;
 };
 
-export const handleLyric = (lrc?: string) => {
+export const parseLyric = (lrc?: string) => {
     if (!lrc) {
         return [];
     }
