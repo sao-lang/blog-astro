@@ -1,13 +1,10 @@
-* {
-    padding: 0;
-    margin: 0;
-}
-.icon {
-    width: 1em;
-    height: 1em;
-    vertical-align: -0.15em;
-    fill: currentColor;
-    overflow: hidden;
+@keyframes rotate {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes bounce-down {
@@ -43,16 +40,4 @@
         opacity: 1;
         display: block;
     }
-}
-
-.animate-fade-out {
-    animation: fade-out 1s linear;
-}
-
-.animate-fade-in {
-    animation: fade-in 1s linear;
-}
-
-.animate-bounce-down {
-    animation: bounce-down 1.5s linear infinite;
 }

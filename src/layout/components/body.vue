@@ -3,34 +3,58 @@
     import ScrollBar from 'smooth-scrollbar';
     import Typed from 'typed.js';
     import Icon from '@/components/icon/index.vue';
-    import { BrowserStorage, exchange, translate } from '@/utils';
-    const settingValues = reactive<{ isSimplified: boolean; isDark: boolean }>({
-        isSimplified: true,
-        isDark: false,
-    });
+    import Setting from './setting.vue';
+    import {
+        convertToSimple,
+        convertToSimpleInElement,
+        convertToTraditional,
+        convertToTraditionalInElement,
+    } from '@lania/utils';
+    import '@lania/utils/dist/message.css';
+    import store, { type State } from '@/store';
+    import { Lang, Theme } from '@/enums';
 
     const typedRef = ref<HTMLSpanElement>();
     const typed = ref<Typed>();
     const scrollbarRef = ref<HTMLDivElement>();
     const scrollbar = ref<ScrollBar>();
-
-    const scrollBarProgress = ref('0');
-    const showSetting = ref(false);
-
+    const scrollBarProgress = ref(0);
     const typedWords = ref<string[]>(['去国十年老尽，少年心', '老夫聊发少年狂']);
 
+    store.watchProperty('setting.theme', (value: State['setting']['theme']) => {
+        const dataset = document.body.dataset;
+        value === Theme.dark ? (dataset.theme = 'dark') : delete dataset.theme;
+
+        console.log({ theme: value });
+    });
+    store.watchProperty('setting.lang', (value: State['setting']['lang']) => {
+        const apis = {
+            [Lang.zh_CN]: {
+                convert: convertToSimple,
+                convertInElement: convertToSimpleInElement,
+            },
+            [Lang.zh_TW]: {
+                convert: convertToTraditional,
+                convertInElement: convertToTraditionalInElement,
+            },
+        };
+        const api = apis[value];
+        typedWords.value = typedWords.value.map(word => api.convert(word));
+        initTyped();
+        api.convertInElement();
+    });
     onMounted(() => {
         initStorage();
         initTyped();
         initScrollBar();
     });
     const initStorage = () => {
-        window.storage = new BrowserStorage();
-        settingValues.isSimplified = window.storage.getItem('isSimplified') as boolean;
-        settingValues.isDark = window.storage.getItem('isDark') as boolean;
-        if (settingValues.isSimplified) {
-            translate(false);
-        }
+        // window.storage = new BrowserStorage();
+        // settingValues.isSimplified = window.storage.getItem('isSimplified') as boolean;
+        // settingValues.isDark = window.storage.getItem('isDark') as boolean;
+        // if (settingValues.isSimplified) {
+        //     translate(false);
+        // }
     };
     const initTyped = (words?: string[]) => {
         if (typed.value) {
@@ -47,41 +71,22 @@
     const initScrollBar = () => {
         scrollbar.value = ScrollBar.init(scrollbarRef.value!);
         scrollbar.value.addListener(({ offset, limit }) => {
-            scrollBarProgress.value = ((offset.y / limit.y) * 100).toFixed();
+            scrollBarProgress.value = Math.floor((offset.y / limit.y) * 100);
         });
     };
-
     const handleClickDownIcon = () => {
         const mainContainer = document.querySelector('.layout-main') as HTMLDivElement;
         const headerContainer = document.querySelector('.layout-header') as HTMLDivElement;
         const limit = mainContainer.offsetHeight - headerContainer.offsetHeight;
         scrollbar.value!.scrollTo(0, limit, 500);
     };
-    const handleClickSettingIcon = () => {
-        showSetting.value = !showSetting.value;
-    };
     const handleClickScroll = (type: 'down' | 'up') => {
         scrollbar.value!.scrollTo(0, type === 'up' ? 0 : scrollbar.value!.limit.y, 500);
-    };
-    const handleChangeMode = () => {
-        const { isDark } = settingValues;
-        window.storage.setItem('isDark', !isDark);
-        settingValues.isDark = !isDark;
-    };
-    const handleChangeSimplified = () => {
-        const { isSimplified } = settingValues;
-        settingValues.isSimplified = !isSimplified;
-        window.storage.setItem('isSimplified', !isSimplified);
-        translate(isSimplified);
-        for (let index = 0; index < typedWords.value.length; index++) {
-            typedWords.value[index] = exchange(typedWords.value[index], isSimplified);
-        }
-        initTyped(typedWords.value);
     };
 </script>
 
 <template>
-    <div :class="{ dark: settingValues.isDark }">
+    <div>
         <header class="layout-header" />
         <main class="layout-main" ref="scrollbarRef">
             <div class="layout-main-top">
@@ -96,50 +101,85 @@
                 <slot></slot>
             </div>
         </main>
-        <div class="layout-setting">
-            <span class="layout-setting-other" :style="{ right: !showSetting ? '-60px' : '20px' }">
-                <button class="layout-transform-character" @click="handleChangeSimplified">
-                    <Icon
-                        name="fanzhuanjian"
-                        :class="['layout-traditional-transform', 'layout-setting-icon']"
-                        v-if="settingValues.isSimplified"
-                    />
-                    <Icon
-                        name="jianzhuanfan"
-                        class="layout-simplified-transform layout-setting-icon"
-                        v-else
-                    />
-                </button>
-                <button
-                    :class="[
-                        'layout-transform-mode',
-                        { 'layout-setting-icon-active': settingValues.isDark },
-                    ]"
-                    @click="handleChangeMode"
-                >
-                    <Icon name="yueguang" class="layout-setting-icon" />
-                </button>
-            </span>
-            <button
-                :class="['layout-gear-container', { 'layout-setting-icon-active': showSetting }]"
-                @click="handleClickSettingIcon"
-            >
-                <Icon name="shezhi" class="layout-setting-icon" />
-            </button>
-            <button class="layout-scrollbar-progress">
-                <span class="layout-scrollbar-progress-num">{{ scrollBarProgress }}</span>
-                <span class="layout-scroll-up" @click="() => handleClickScroll('up')">
-                    <Icon name="up" class="layout-setting-icon" />
-                </span>
-            </button>
-            <button class="layout-scroll-down" @click="() => handleClickScroll('down')">
-                <Icon name="down" class="layout-setting-icon" />
-            </button>
-        </div>
     </div>
+    <Setting
+        :scroll-progress="scrollBarProgress"
+        @scroll-to-bottom="() => handleClickScroll('down')"
+        @scroll-to-top="() => handleClickScroll('up')"
+    />
 </template>
 
 <style lang="scss" scoped>
-    @use '../style/index.scss';
-    @use '../style/dark.scss';
+    .animate-bounce-down {
+        animation: bounce-down 1.5s linear infinite;
+    }
+    .layout-header {
+        position: fixed;
+        width: 100%;
+        height: 60px;
+        z-index: 1;
+        background: linear-gradient(
+            120deg,
+            rgba(97, 192, 191, 0.208) 0,
+            rgba(255, 182, 185, 0.208) 100%
+        );
+        backdrop-filter: blur(10px);
+        transition: all 1s;
+    }
+
+    .layout-main {
+        height: 100vh;
+        background: url('../../public/imgs/home_bg.webp') left top no-repeat;
+        overflow-x: hidden;
+        overflow-y: auto;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+        .layout-main-top {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 100vh;
+
+            .layout-main-typed-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+                padding: 0 10px;
+                height: 50px;
+                border-radius: 5px;
+                font-size: 20px;
+                color: var(--typed-text-color);
+                background-color: var(--typed-bg-color);
+            }
+
+            .layout-main-down {
+                position: absolute;
+                bottom: 10px;
+                cursor: pointer;
+            }
+            .layout-main-down-icon {
+                font-size: 40px;
+                color: var(--debounced-down-icon-text-color);
+            }
+        }
+        .layout-main-content {
+            min-height: 100vh;
+            padding: 0 150px;
+        }
+    }
+</style>
+
+<style lang="scss">
+    .layout-main {
+        .scrollbar-track {
+            background-color: var(--scrollbar-track-color);
+        }
+        .scrollbar-thumb {
+            background-color: var(--scrollbar-thumb-color);
+        }
+    }
 </style>

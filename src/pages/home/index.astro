@@ -1,15 +1,14 @@
 ---
 import Layout from '@/layout/index.astro';
-// @ts-ignore
-import Player from './components/player/index.vue';
-import { getSongs } from '@/apis/songs';
-
-const songs = await getSongs();
+import Player from '@/components/player/index.vue';
+let songs = [];
 ---
+
+<script></script>
 
 <Layout>
     <aside>
-        <Player client:only="vue" songs={songs} />
+        <Player client:only="vue" />
     </aside>
     <main class="home"></main>
 </Layout>

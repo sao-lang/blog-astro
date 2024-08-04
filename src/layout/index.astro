@@ -24,6 +24,11 @@ const { title } = Astro.props;
     <script src="http://at.alicdn.com/t/c/font_4412576_8odlg54520k.js"></script>
 
     <style is:global lang="scss">
-        @use './style/global.scss';
+        @use '../style/var.scss';
+        @use '../style/animation.scss';
+        * {
+            padding: 0;
+            margin: 0;
+        }
     </style>
 </html>

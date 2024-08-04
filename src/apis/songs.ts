@@ -1,7 +1,7 @@
-import type { Song } from '@/pages/home/components/player/types';
+import type { Song } from '@/components/player/types';
 import request from '@/utils/request';
 
-export const getSongs = async () => {
+export const getPlayerSongs = async () => {
     try {
         const { fetch } = request.get<Song[]>('http://127.0.0.1:10000/songs');
         const res = await fetch();

@@ -5,7 +5,9 @@ import axios, {
     type CancelTokenSource,
     type InternalAxiosRequestConfig,
 } from 'axios';
+import message from './message';
 
+import { AxiosWrapper } from '@lania/utils'
 // 定义接口来描述响应结构
 interface ApiResponse<T = any> {
     code: number;
@@ -75,6 +77,7 @@ service.interceptors.response.use(
         } else {
             console.error('Network Error: 网络错误，请检查您的网络连接');
         }
+        message.error(error);
         return Promise.reject(error);
     },
 );

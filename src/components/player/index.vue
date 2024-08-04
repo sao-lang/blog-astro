@@ -5,9 +5,9 @@
     import { computed, onMounted, ref, watch } from 'vue';
     import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
     import type { Song } from './types';
+    import { getPlayerSongs } from '@/apis/songs';
 
-    const props = withDefaults(defineProps<{ songs: Song[] }>(), {});
-
+    const songs = ref<Song[]>([]);
     const isMouseDown = ref(false);
     const isSingleLoop = ref(false);
     const isPlayed = ref(false);
@@ -18,7 +18,7 @@
     const showVoiceSlider = ref(false);
     const percent = ref(0);
     const current = computed(() => {
-        const currentSong = props.songs[currentIndex.value];
+        const currentSong = songs.value[currentIndex.value];
         return { ...currentSong, lyrics: parseLyric(currentSong?.lyric) };
     });
     const lyric = ref(current.value?.lyrics[0]?.line ?? '暂无歌词');
@@ -29,6 +29,14 @@
             audioRef.value!.volume = volume;
         },
     );
+    onMounted(() => {
+        getSongs();
+    });
+
+    const getSongs = async () => {
+        const res = await getPlayerSongs();
+        songs.value = res;
+    };
 
     const handleSliderMouseDown = () => {
         isMouseDown.value = true;
@@ -46,7 +54,7 @@
         audioRef.value?.pause();
         isPlayed.value = false;
         percent.value = 0;
-        currentIndex.value = getCurrentIndex(type, props.songs, currentIndex.value);
+        currentIndex.value = getCurrentIndex(type, songs.value, currentIndex.value);
         lyric.value = current.value?.lyrics[0]?.line ?? '暂无歌词';
         audioRef.value.src = current.value.source;
         audioRef.value.load();
@@ -76,7 +84,7 @@
         const target = e.target as HTMLAudioElement;
         if (!isSingleLoop.value) {
             currentIndex.value =
-                currentIndex.value === props.songs.length - 1 ? 0 : currentIndex.value + 1;
+                currentIndex.value === songs.value.length - 1 ? 0 : currentIndex.value + 1;
             target.src = current.value.source;
             target.load();
         }

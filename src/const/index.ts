@@ -1,0 +1,3 @@
+export const PERSISTENT_PLUGIN_STORED_KEY = 'PERSISTENT_PLUGIN_KEY';
+
+export const STORE_SETTING_KEY = 'setting';

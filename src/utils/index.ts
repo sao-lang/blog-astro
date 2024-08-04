@@ -1,4 +1,3 @@
-export * from './translate';
 export * from './storage';
 export type Fn = (...args: any) => any;
 export type FnArgsType<F extends Function> = F extends (...args: infer A) => any ? A : never;

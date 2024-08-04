@@ -5,5 +5,15 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{ name: string; color?: string; fontSize?: string }>();
+    defineProps<{ name: string; color?: string; fontSize?: string }>();
 </script>
+
+<style lang="scss" scoped>
+    .icon {
+        width: 1em;
+        height: 1em;
+        vertical-align: -0.15em;
+        fill: currentColor;
+        overflow: hidden;
+    }
+</style>

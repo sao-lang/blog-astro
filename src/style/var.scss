@@ -1,0 +1,27 @@
+/* 定义默认（明亮）主题 */
+:root {
+    --typed-bg-color: rgba(255, 255, 255, 0.5);
+    --typed-text-color: #000;
+    --text-color: #000000;
+    --card-bg-color: rgba(255, 255, 255, 0.8);
+    --setting-btn-bg-color: rgba(255, 255, 255, 0.5);
+    --setting-btn-active-bg-color: rgba(0, 0, 0, 0.6);
+    --setting-btn-active-text-color: #fff;
+    --scrollbar-track-color: rgba(222, 222, 222, 0.75);
+    --scrollbar-thumb-color: rgba(0, 0, 0, 0.5);
+    --debounced-down-icon-text-color: rgba(255, 255, 255, 0.65);
+}
+
+/* 定义暗黑主题 */
+[data-theme='dark'] {
+    --typed-bg-color: rgba(0, 0, 0, 0.5);
+    --typed-text-color: #fff;
+    --text-color: #fff;
+    --card-bg-color: rgba(0, 0, 0, 0.8);
+    --setting-btn-bg-color: rgba(0, 0, 0, 0.5);
+    --setting-btn-active-bg-color: rgba(255, 255, 255, 0.6);
+    --setting-btn-active-text-color: #000;
+    --scrollbar-track-color: rgba(0, 0, 0, 0.45);
+    --scrollbar-thumb-color: rgba(255, 255, 255, 0.5);
+    --debounced-down-icon-text-color: rgba(0, 0, 0, 0.65);
+}
