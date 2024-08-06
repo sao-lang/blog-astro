@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-    import { onMounted, reactive, ref } from 'vue';
+    import { nextTick, onMounted, reactive, ref } from 'vue';
     import ScrollBar from 'smooth-scrollbar';
     import Typed from 'typed.js';
     import Icon from '@/components/icon/index.vue';
@@ -21,28 +21,37 @@
     const scrollBarProgress = ref(0);
     const typedWords = ref<string[]>(['去国十年老尽，少年心', '老夫聊发少年狂']);
 
-    store.watchProperty('setting.theme', (value: State['setting']['theme']) => {
-        const dataset = document.body.dataset;
-        value === Theme.dark ? (dataset.theme = 'dark') : delete dataset.theme;
-
-        console.log({ theme: value });
-    });
-    store.watchProperty('setting.lang', (value: State['setting']['lang']) => {
-        const apis = {
-            [Lang.zh_CN]: {
-                convert: convertToSimple,
-                convertInElement: convertToSimpleInElement,
-            },
-            [Lang.zh_TW]: {
-                convert: convertToTraditional,
-                convertInElement: convertToTraditionalInElement,
-            },
-        };
-        const api = apis[value];
-        typedWords.value = typedWords.value.map(word => api.convert(word));
-        initTyped();
-        api.convertInElement();
-    });
+    store.watchProperty(
+        'setting.theme',
+        (value: State['setting']['theme']) => {
+            console.log({ value });
+            const dataset = document.body.dataset;
+            value === Theme.dark ? (dataset.theme = 'dark') : delete dataset.theme;
+        },
+        true,
+    );
+    store.watchProperty(
+        'setting.lang',
+        (value: State['setting']['lang']) => {
+            nextTick(() => {
+                const apis = {
+                    [Lang.zh_CN]: {
+                        convert: convertToSimple,
+                        convertInElement: convertToSimpleInElement,
+                    },
+                    [Lang.zh_TW]: {
+                        convert: convertToTraditional,
+                        convertInElement: convertToTraditionalInElement,
+                    },
+                };
+                const api = apis[value];
+                typedWords.value = typedWords.value.map(word => api.convert(word));
+                initTyped();
+                api.convertInElement();
+            });
+        },
+        true,
+    );
     onMounted(() => {
         initStorage();
         initTyped();

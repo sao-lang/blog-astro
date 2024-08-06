@@ -41,43 +41,47 @@
     </div>
 </template>
 <script setup lang="ts">
-    import { reactive, ref, type PropType } from 'vue';
+    import { reactive, ref, watch, type PropType } from 'vue';
     import Icon from '@/components/icon/index.vue';
     import { Lang, Theme } from '@/enums';
     import store, { actions, type State } from '@/store';
+    import { deepClone } from '@lania/utils';
 
     const props = defineProps({
-        theme: {
-            type: String as PropType<Theme>,
-            default: Theme.light,
-        },
-        lang: {
-            type: String as PropType<Lang>,
-            default: Lang.zh_CN,
-        },
         scrollProgress: {
             type: Number,
             default: 0,
         },
     });
-    const settingValues = reactive((store.getState() as State).setting);
+    const settingValues = reactive(deepClone((store.getState() as State).setting));
     const emits = defineEmits(['themeChange', 'langChange', 'scrollToTop', 'scrollToBottom']);
     const showAllSetting = ref(false);
 
-    store.watchProperty('setting', (value: State['setting']) => {
-        Object.assign(settingValues, value);
-        console.log({ setting: value });
-    });
+    store.watchProperty(
+        'setting',
+        (value: State['setting']) => {
+            Object.assign(settingValues, value);
+        },
+        true,
+    );
 
     const handleLangChange = () => {
-        store.setState('setting.lang', settingValues.lang === Lang.zh_CN ? Lang.zh_TW : Lang.zh_CN);
+        const lang = settingValues.lang === Lang.zh_CN ? Lang.zh_TW : Lang.zh_CN;
+        store.setState('setting.lang', lang);
+        settingValues.lang = lang;
+        console.log({ lang, settingValues });
     };
     const handleThemeChange = () => {
-        store.setState(
-            'setting.theme',
-            settingValues.theme === Theme.light ? Theme.dark : Theme.light,
-        );
+        const theme = settingValues.theme === Theme.light ? Theme.dark : Theme.light;
+        store.setState('setting.theme', theme);
+        settingValues.theme = theme;
     };
+    watch(
+        () => settingValues.lang,
+        lang => {
+            console.log({ lang }, 'watch');
+        },
+    );
     const handleToggleShowAllSettings = () => {
         showAllSetting.value = !showAllSetting.value;
     };
