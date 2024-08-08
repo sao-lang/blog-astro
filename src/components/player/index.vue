@@ -6,6 +6,7 @@
     import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
     import type { Song } from './types';
     import { getPlayerSongs } from '@/apis/songs';
+    import { http } from '@/apis/request';
 
     const songs = ref<Song[]>([]);
     const isMouseDown = ref(false);
@@ -31,6 +32,7 @@
     );
     onMounted(() => {
         getSongs();
+        console.log({http})
     });
 
     const getSongs = async () => {

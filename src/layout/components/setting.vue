@@ -59,29 +59,22 @@
 
     store.watchProperty(
         'setting',
-        (value: State['setting']) => {
+        (value: State['setting'], oldValue) => {
             Object.assign(settingValues, value);
         },
-        true,
+        { immediate: true, deep: true },
     );
 
     const handleLangChange = () => {
         const lang = settingValues.lang === Lang.zh_CN ? Lang.zh_TW : Lang.zh_CN;
-        store.setState('setting.lang', lang);
+        store.dispatch({ type: 'SET_LANG', payload: { lang } });
         settingValues.lang = lang;
-        console.log({ lang, settingValues });
     };
     const handleThemeChange = () => {
         const theme = settingValues.theme === Theme.light ? Theme.dark : Theme.light;
-        store.setState('setting.theme', theme);
+        store.dispatch({ type: 'SET_THEME', payload: { theme } });
         settingValues.theme = theme;
     };
-    watch(
-        () => settingValues.lang,
-        lang => {
-            console.log({ lang }, 'watch');
-        },
-    );
     const handleToggleShowAllSettings = () => {
         showAllSetting.value = !showAllSetting.value;
     };

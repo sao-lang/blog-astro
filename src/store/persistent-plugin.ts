@@ -1,43 +1,38 @@
-import { LocalStorageHelper, type Store } from '@lania/utils';
+import { LocalStorageHelper, type Store, type StorePlugin } from '@lania/utils';
+import type { State } from '.';
 
 type PersistentPluginOptions = {
     storageKey: string; // 用于存储状态的键
     valueKey?: string[];
 };
 
-export class PersistentPlugin {
+export const REHYDRATE = '@@INIT_FROM_STORAGE';
+
+export class PersistentPlugin implements StorePlugin {
     private storageKey: string;
-    private valueKey?: string[];
 
     constructor(options: PersistentPluginOptions) {
         this.storageKey = options.storageKey;
-        this.valueKey = options.valueKey;
     }
 
-    onInit(store: Store): void {
+    onInit(store: Store<State>): void {
         // 从存储中恢复状态
-        const storedState = LocalStorageHelper.get<any>(this.storageKey) || {};
-        if (!this.valueKey) {
-            store.setState('', storedState);
+        const storedState = LocalStorageHelper.get<State>(this.storageKey);
+        if (storedState) {
+            store.dispatch({ type: REHYDRATE, payload: storedState });
             return;
         }
-        this.valueKey.forEach(key => {
-            const value = storedState[key];
-            if (value) {
-                store.setState(key, value);
-            }
-        });
     }
 
-    onStateChange(_store: Store, newState: Record<string, any>): void {
-        if (!this.valueKey) {
-            LocalStorageHelper.set(this.storageKey, newState);
-            return;
-        }
-        const state = this.valueKey.reduce((acc: Record<string, any>, key) => {
-            acc[key] = newState[key];
-            return acc;
-        }, {});
-        LocalStorageHelper.set(this.storageKey, state);
+    onStateChange(
+        _store: Store<State>,
+        oldState: Record<string, any>,
+        newState: Record<string, any>,
+    ): void {
+        LocalStorageHelper.set(this.storageKey, newState);
+    }
+
+    onError(store: any, error: Error) {
+        console.error(error);
     }
 }

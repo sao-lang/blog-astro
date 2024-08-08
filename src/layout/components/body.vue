@@ -24,16 +24,15 @@
     store.watchProperty(
         'setting.theme',
         (value: State['setting']['theme']) => {
-            console.log({ value });
             const dataset = document.body.dataset;
             value === Theme.dark ? (dataset.theme = 'dark') : delete dataset.theme;
         },
-        true,
+        { immediate: true },
     );
     store.watchProperty(
         'setting.lang',
         (value: State['setting']['lang']) => {
-            nextTick(() => {
+            setTimeout(() => {
                 const apis = {
                     [Lang.zh_CN]: {
                         convert: convertToSimple,
@@ -48,9 +47,9 @@
                 typedWords.value = typedWords.value.map(word => api.convert(word));
                 initTyped();
                 api.convertInElement();
-            });
+            }, 500);
         },
-        true,
+        { immediate: true },
     );
     onMounted(() => {
         initStorage();
