@@ -12,8 +12,11 @@ dependencies:
     specifier: ^4.0.8
     version: 4.0.8(@babel/core@7.25.2)(astro@4.1.2)(vite@5.3.5)(vue@3.4.18)
   '@lania/utils':
-    specifier: ^1.4.0
-    version: 1.4.0(axios@1.6.7)
+    specifier: ^1.4.11
+    version: 1.4.11(axios@1.6.7)
+  '@lania/utils-json':
+    specifier: ^0.1.0
+    version: 0.1.0
   astro:
     specifier: ^4.1.2
     version: 4.1.2(@types/node@20.11.3)(sass@1.69.7)(typescript@5.3.3)
@@ -1172,8 +1175,12 @@ packages:
       '@jridgewell/sourcemap-codec': 1.5.0
     dev: false
 
-  /@lania/utils@1.4.0(axios@1.6.7):
-    resolution: {integrity: sha512-QgeCFqJH72ItiSqc05yoHBgMYaex555q0n/iQ1uTlmbzqczPLqcFpV32UegENHV/2/PSNF1M4wYOeh+4HUtELA==}
+  /@lania/utils-json@0.1.0:
+    resolution: {integrity: sha512-KvzIOQfuTSk70ImlV8RoK+ILI8cyFeuRl1LcCxndQHmpnlrpz/dSz4bzyw2yiX+Toi0nrHa4KFmPFBdBk6+o4A==}
+    dev: false
+
+  /@lania/utils@1.4.11(axios@1.6.7):
+    resolution: {integrity: sha512-Cn558izucf47u93SH92QjP6E2JT2yPeAMvt3GLuITuKfi4GQuvUySvl/jXKOPxOnXyuz2oZOVYBuNAatvAZQHA==}
     peerDependencies:
       axios: ^1.7.3
     dependencies:

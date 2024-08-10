@@ -15,7 +15,7 @@ export class PersistentPlugin implements StorePlugin {
         this.storageKey = options.storageKey;
     }
 
-    onInit(store: Store<State>): void {
+    onInit(store: Store<State, any>): void {
         // 从存储中恢复状态
         const storedState = LocalStorageHelper.get<State>(this.storageKey);
         if (storedState) {
@@ -24,11 +24,7 @@ export class PersistentPlugin implements StorePlugin {
         }
     }
 
-    onStateChange(
-        _store: Store<State>,
-        oldState: Record<string, any>,
-        newState: Record<string, any>,
-    ): void {
+    onStateChange(_store: Store<State, any>, newState: Record<string, any>): void {
         LocalStorageHelper.set(this.storageKey, newState);
     }
 

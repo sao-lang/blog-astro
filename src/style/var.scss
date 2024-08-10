@@ -10,6 +10,8 @@
     --scrollbar-track-color: rgba(222, 222, 222, 0.75);
     --scrollbar-thumb-color: rgba(0, 0, 0, 0.5);
     --debounced-down-icon-text-color: rgba(255, 255, 255, 0.65);
+    --context-menu-btn-hover-bg-color: #333;
+    --context-menu-border-color: #999;
 }
 
 /* 定义暗黑主题 */
@@ -24,4 +26,6 @@
     --scrollbar-track-color: rgba(0, 0, 0, 0.45);
     --scrollbar-thumb-color: rgba(255, 255, 255, 0.5);
     --debounced-down-icon-text-color: rgba(0, 0, 0, 0.65);
+    --context-menu-btn-hover-bg-color: #fff;
+    --context-menu-border-color: #fff;
 }

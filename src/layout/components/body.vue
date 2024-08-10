@@ -1,29 +1,31 @@
 <script lang="ts" setup>
-    import { nextTick, onMounted, reactive, ref } from 'vue';
+    import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
     import ScrollBar from 'smooth-scrollbar';
     import Typed from 'typed.js';
     import Icon from '@/components/icon/index.vue';
+    import ContextMenu from '@/components/context-menu/index.vue';
     import Setting from './setting.vue';
-    import {
-        convertToSimple,
-        convertToSimpleInElement,
-        convertToTraditional,
-        convertToTraditionalInElement,
-    } from '@lania/utils';
+    import { convertChinese, convertPageChinese, throttle } from '@lania/utils';
+    import simpledToTraditional from '@lania/utils-json/simpledToTraditional.json';
+    import traditionalToSimpled from '@lania/utils-json/traditionalToSimpled.json';
     import '@lania/utils/dist/message.css';
     import store, { type State } from '@/store';
     import { Lang, Theme } from '@/enums';
+    import type { ContextMenuExpose } from '@/components/context-menu/types';
+    import type { ScrollListener } from 'smooth-scrollbar/interfaces/scrollbar';
 
     const typedRef = ref<HTMLSpanElement>();
     const typed = ref<Typed>();
     const scrollbarRef = ref<HTMLDivElement>();
+    const headerContainerRef = ref<HTMLHeadElement>();
     const scrollbar = ref<ScrollBar>();
     const scrollBarProgress = ref(0);
     const typedWords = ref<string[]>(['去国十年老尽，少年心', '老夫聊发少年狂']);
+    const contextMenuRef = ref<ContextMenuExpose>();
 
     store.watchProperty(
         'setting.theme',
-        (value: State['setting']['theme']) => {
+        value => {
             const dataset = document.body.dataset;
             value === Theme.dark ? (dataset.theme = 'dark') : delete dataset.theme;
         },
@@ -31,39 +33,33 @@
     );
     store.watchProperty(
         'setting.lang',
-        (value: State['setting']['lang']) => {
+        value => {
             setTimeout(() => {
                 const apis = {
                     [Lang.zh_CN]: {
-                        convert: convertToSimple,
-                        convertInElement: convertToSimpleInElement,
+                        convert: (text: string) => convertChinese(text, traditionalToSimpled),
+                        convertInElement: () => convertPageChinese(traditionalToSimpled),
                     },
                     [Lang.zh_TW]: {
-                        convert: convertToTraditional,
-                        convertInElement: convertToTraditionalInElement,
+                        convert: (text: string) => convertChinese(text, simpledToTraditional),
+                        convertInElement: () => convertPageChinese(simpledToTraditional),
                     },
                 };
                 const api = apis[value];
                 typedWords.value = typedWords.value.map(word => api.convert(word));
                 initTyped();
                 api.convertInElement();
-            }, 500);
+            }, 100);
         },
         { immediate: true },
     );
     onMounted(() => {
-        initStorage();
         initTyped();
         initScrollBar();
     });
-    const initStorage = () => {
-        // window.storage = new BrowserStorage();
-        // settingValues.isSimplified = window.storage.getItem('isSimplified') as boolean;
-        // settingValues.isDark = window.storage.getItem('isDark') as boolean;
-        // if (settingValues.isSimplified) {
-        //     translate(false);
-        // }
-    };
+    onUnmounted(() => {
+        scrollbar.value?.removeListener(handleScrollbarScroll);
+    });
     const initTyped = (words?: string[]) => {
         if (typed.value) {
             typed.value.destroy();
@@ -78,37 +74,41 @@
     };
     const initScrollBar = () => {
         scrollbar.value = ScrollBar.init(scrollbarRef.value!);
-        scrollbar.value.addListener(({ offset, limit }) => {
-            scrollBarProgress.value = Math.floor((offset.y / limit.y) * 100);
-        });
+        scrollbar.value.addListener(handleScrollbarScroll);
     };
     const handleClickDownIcon = () => {
-        const mainContainer = document.querySelector('.layout-main') as HTMLDivElement;
-        const headerContainer = document.querySelector('.layout-header') as HTMLDivElement;
+        const mainContainer = scrollbarRef.value as HTMLDivElement;
+        const headerContainer = headerContainerRef.value as HTMLDivElement;
         const limit = mainContainer.offsetHeight - headerContainer.offsetHeight;
         scrollbar.value!.scrollTo(0, limit, 500);
     };
     const handleClickScroll = (type: 'down' | 'up') => {
         scrollbar.value!.scrollTo(0, type === 'up' ? 0 : scrollbar.value!.limit.y, 500);
     };
+    const handleScrollbarScroll: ScrollListener = ({ offset, limit }) => {
+        contextMenuRef.value?.closeMenu();
+        scrollBarProgress.value = Math.floor((offset.y / limit.y) * 100);
+    };
 </script>
 
 <template>
     <div>
-        <header class="layout-header" />
-        <main class="layout-main" ref="scrollbarRef">
-            <div class="layout-main-top">
-                <span class="layout-main-typed-container">
-                    <span class="layout-main-typed-inner" ref="typedRef"></span>
-                </span>
-                <div class="animate-bounce-down layout-main-down" @click="handleClickDownIcon">
-                    <Icon name="down1" class="layout-main-down-icon" />
+        <ContextMenu ref="contextMenuRef">
+            <header class="layout-header" ref="headerContainerRef" />
+            <main class="layout-main" ref="scrollbarRef">
+                <div class="layout-main-top">
+                    <span class="layout-main-typed-container">
+                        <span class="layout-main-typed-inner" ref="typedRef"></span>
+                    </span>
+                    <div class="animate-bounce-down layout-main-down" @click="handleClickDownIcon">
+                        <Icon name="down1" class="layout-main-down-icon" />
+                    </div>
                 </div>
-            </div>
-            <div class="layout-main-content">
-                <slot></slot>
-            </div>
-        </main>
+                <div class="layout-main-content">
+                    <slot></slot>
+                </div>
+            </main>
+        </ContextMenu>
     </div>
     <Setting
         :scroll-progress="scrollBarProgress"

@@ -1,5 +1,4 @@
 ---
-// @ts-ignore
 import Body from './components/body.vue';
 interface Props {
     title?: string;
@@ -17,11 +16,12 @@ const { title } = Astro.props;
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
     </head>
+
     <Body client:only="vue">
         <slot />
     </Body>
 
-    <script src="http://at.alicdn.com/t/c/font_4412576_8odlg54520k.js"></script>
+    <script src="http://at.alicdn.com/t/c/font_4412576_14rl2yp6v4c.js"></script>
 
     <style is:global lang="scss">
         @use '../style/var.scss';

@@ -12,7 +12,8 @@
     "dependencies": {
         "@astrojs/check": "^0.4.1",
         "@astrojs/vue": "^4.0.8",
-        "@lania/utils": "^1.4.0",
+        "@lania/utils": "^1.4.11",
+        "@lania/utils-json": "^0.1.0",
         "astro": "^4.1.2",
         "axios": "^1.6.7",
         "dayjs": "^1.11.10",

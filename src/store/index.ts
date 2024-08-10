@@ -33,6 +33,14 @@ const store = new Store({
         },
     },
     plugins: [persistentPlugin],
+    derivedState: {
+        isSimple: state => {
+            return state.setting.lang === Lang.zh_CN;
+        },
+        isLight: state => {
+            return state.setting.theme === Theme.light;
+        },
+    },
 });
 
 export default store;

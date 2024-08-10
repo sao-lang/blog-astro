@@ -3,20 +3,19 @@
         <span class="layout-setting-other" :style="{ right: !showAllSetting ? '-60px' : '20px' }">
             <button class="layout-transform-character" @click="handleLangChange">
                 <Icon
-                    name="fanzhuanjian"
-                    :class="['layout-traditional-transform', 'layout-setting-icon']"
-                    v-if="settingValues.lang === Lang.zh_CN"
-                />
-                <Icon
-                    name="jianzhuanfan"
-                    class="layout-simplified-transform layout-setting-icon"
-                    v-else
+                    :name="!setting.isSimple ? 'fanzhuanjian' : 'jianzhuanfan'"
+                    :class="[
+                        !setting.isSimple
+                            ? 'layout-traditional-transform'
+                            : 'layout-simplified-transform',
+                        'layout-setting-icon',
+                    ]"
                 />
             </button>
             <button
                 :class="[
                     'layout-transform-mode',
-                    { 'layout-setting-icon-active': settingValues.theme === Theme.dark },
+                    { 'layout-setting-icon-active': !setting.isLight },
                 ]"
                 @click="handleThemeChange"
             >
@@ -32,48 +31,47 @@
         <button class="layout-scrollbar-progress">
             <span class="layout-scrollbar-progress-num">{{ props.scrollProgress }}</span>
             <span class="layout-scroll-up" @click="handleScrollTopBtnClick">
-                <Icon name="up" class="layout-setting-icon" />
+                <Icon name="up-1" class="layout-setting-icon" />
             </span>
         </button>
         <button class="layout-scroll-down" @click="handleScrollBottomBtnClick">
-            <Icon name="down" class="layout-setting-icon" />
+            <Icon name="down-2" class="layout-setting-icon" />
         </button>
     </div>
 </template>
 <script setup lang="ts">
-    import { reactive, ref, watch, type PropType } from 'vue';
+    import { nextTick, reactive, ref, watch, type PropType } from 'vue';
     import Icon from '@/components/icon/index.vue';
     import { Lang, Theme } from '@/enums';
-    import store, { actions, type State } from '@/store';
-    import { deepClone } from '@lania/utils';
-
+    import store, { type State } from '@/store';
+    import message from '@/utils/message';
+    import useSettingHook from '@/hooks/useSettingHook';
     const props = defineProps({
         scrollProgress: {
             type: Number,
             default: 0,
         },
     });
-    const settingValues = reactive(deepClone((store.getState() as State).setting));
     const emits = defineEmits(['themeChange', 'langChange', 'scrollToTop', 'scrollToBottom']);
     const showAllSetting = ref(false);
-
-    store.watchProperty(
-        'setting',
-        (value: State['setting'], oldValue) => {
-            Object.assign(settingValues, value);
-        },
-        { immediate: true, deep: true },
-    );
+    const setting = useSettingHook();
 
     const handleLangChange = () => {
-        const lang = settingValues.lang === Lang.zh_CN ? Lang.zh_TW : Lang.zh_CN;
+        const lang = setting.isSimple ? Lang.zh_TW : Lang.zh_CN;
         store.dispatch({ type: 'SET_LANG', payload: { lang } });
-        settingValues.lang = lang;
+        nextTick(() => {
+            message.success(!setting.isSimple ? '你已经切换成繁体' : '你已经切换成简体', 1000);
+        });
     };
     const handleThemeChange = () => {
-        const theme = settingValues.theme === Theme.light ? Theme.dark : Theme.light;
+        const theme = setting.isLight ? Theme.dark : Theme.light;
         store.dispatch({ type: 'SET_THEME', payload: { theme } });
-        settingValues.theme = theme;
+        nextTick(() => {
+            message.success(
+                !setting.isLight ? '你已经切换成深色模式' : '你已经切换成浅色模式',
+                1000,
+            );
+        });
     };
     const handleToggleShowAllSettings = () => {
         showAllSetting.value = !showAllSetting.value;

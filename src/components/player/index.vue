@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import Icon from '@/components/icon/index.vue';
     import Progress from '@/components/progress/index.vue';
-    import { throttle } from '@/utils';
+    import { throttle } from '@lania/utils';
     import { computed, onMounted, ref, watch } from 'vue';
     import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
     import type { Song } from './types';
@@ -32,7 +32,6 @@
     );
     onMounted(() => {
         getSongs();
-        console.log({http})
     });
 
     const getSongs = async () => {
