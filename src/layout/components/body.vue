@@ -1,18 +1,19 @@
 <script lang="ts" setup>
-    import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
+    import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
     import ScrollBar from 'smooth-scrollbar';
     import Typed from 'typed.js';
+    import Player from '@/components/player/index.vue';
     import Icon from '@/components/icon/index.vue';
     import ContextMenu from '@/components/context-menu/index.vue';
-    import Setting from './setting.vue';
-    import { convertChinese, convertPageChinese, throttle } from '@lania/utils';
+    import Setting from '@/components/setting/index.vue';
+    import { convertChinese, convertPageChinese } from '@lania/utils';
     import simpledToTraditional from '@lania/utils-json/simpledToTraditional.json';
     import traditionalToSimpled from '@lania/utils-json/traditionalToSimpled.json';
     import '@lania/utils/dist/message.css';
-    import store, { type State } from '@/store';
-    import { Lang, Theme } from '@/enums';
+    import { Lang } from '@/enums';
     import type { ContextMenuExpose } from '@/components/context-menu/types';
     import type { ScrollListener } from 'smooth-scrollbar/interfaces/scrollbar';
+    import useSettingHook from '@/hooks/useSettingHook';
 
     const typedRef = ref<HTMLSpanElement>();
     const typed = ref<Typed>();
@@ -22,18 +23,19 @@
     const scrollBarProgress = ref(0);
     const typedWords = ref<string[]>(['去国十年老尽，少年心', '老夫聊发少年狂']);
     const contextMenuRef = ref<ContextMenuExpose>();
+    const setting = useSettingHook();
 
-    store.watchProperty(
-        'setting.theme',
-        value => {
+    watch(
+        () => setting.isLight,
+        isLight => {
             const dataset = document.body.dataset;
-            value === Theme.dark ? (dataset.theme = 'dark') : delete dataset.theme;
+            !isLight ? (dataset.theme = 'dark') : delete dataset.theme;
         },
         { immediate: true },
     );
-    store.watchProperty(
-        'setting.lang',
-        value => {
+    watch(
+        () => setting.isSimple,
+        isSimple => {
             setTimeout(() => {
                 const apis = {
                     [Lang.zh_CN]: {
@@ -45,7 +47,7 @@
                         convertInElement: () => convertPageChinese(simpledToTraditional),
                     },
                 };
-                const api = apis[value];
+                const api = apis[isSimple ? Lang.zh_CN : Lang.zh_TW];
                 typedWords.value = typedWords.value.map(word => api.convert(word));
                 initTyped();
                 api.convertInElement();
@@ -53,6 +55,7 @@
         },
         { immediate: true },
     );
+
     onMounted(() => {
         initTyped();
         initScrollBar();
@@ -93,7 +96,7 @@
 
 <template>
     <div>
-        <ContextMenu ref="contextMenuRef">
+        <ContextMenu ref="contextMenuRef" @to-top="() => handleClickScroll('up')">
             <header class="layout-header" ref="headerContainerRef" />
             <main class="layout-main" ref="scrollbarRef">
                 <div class="layout-main-top">
@@ -115,6 +118,7 @@
         @scroll-to-bottom="() => handleClickScroll('down')"
         @scroll-to-top="() => handleClickScroll('up')"
     />
+    <Player client:only="vue" />
 </template>
 
 <style lang="scss" scoped>
@@ -162,6 +166,7 @@
                 font-size: 20px;
                 color: var(--typed-text-color);
                 background-color: var(--typed-bg-color);
+                transition: all 0.3s;
             }
 
             .layout-main-down {
@@ -172,6 +177,7 @@
             .layout-main-down-icon {
                 font-size: 40px;
                 color: var(--debounced-down-icon-text-color);
+                transition: all 0.3s;
             }
         }
         .layout-main-content {

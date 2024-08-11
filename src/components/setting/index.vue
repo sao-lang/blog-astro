@@ -40,10 +40,10 @@
     </div>
 </template>
 <script setup lang="ts">
-    import { nextTick, reactive, ref, watch, type PropType } from 'vue';
+    import { nextTick, ref } from 'vue';
     import Icon from '@/components/icon/index.vue';
     import { Lang, Theme } from '@/enums';
-    import store, { type State } from '@/store';
+    import { actions } from '@/store';
     import message from '@/utils/message';
     import useSettingHook from '@/hooks/useSettingHook';
     const props = defineProps({
@@ -58,20 +58,11 @@
 
     const handleLangChange = () => {
         const lang = setting.isSimple ? Lang.zh_TW : Lang.zh_CN;
-        store.dispatch({ type: 'SET_LANG', payload: { lang } });
-        nextTick(() => {
-            message.success(!setting.isSimple ? '你已经切换成繁体' : '你已经切换成简体', 1000);
-        });
+        actions.setLang(lang, true);
     };
     const handleThemeChange = () => {
         const theme = setting.isLight ? Theme.dark : Theme.light;
-        store.dispatch({ type: 'SET_THEME', payload: { theme } });
-        nextTick(() => {
-            message.success(
-                !setting.isLight ? '你已经切换成深色模式' : '你已经切换成浅色模式',
-                1000,
-            );
-        });
+        actions.setTheme(theme, true);
     };
     const handleToggleShowAllSettings = () => {
         showAllSetting.value = !showAllSetting.value;

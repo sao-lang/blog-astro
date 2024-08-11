@@ -8,14 +8,15 @@ export enum Lang {
     zh_TW = 'zh_TW',
 }
 
-export enum Icon {
+export enum IconType {
     closeMenu = 'shouqicaidan-guanbi',
+    openMenu = 'shouqicaidan-dakai',
     search = 'sousuo',
     sun = 'taiyang',
     moon = 'yueguang',
     copy = 'copy',
     refresh = 'refresh',
-    top = 'up-1',
+    up = 'up-1',
     down = 'down-2',
     next = 'next-2',
     previous = 'previous-2',

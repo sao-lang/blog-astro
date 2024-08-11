@@ -8,14 +8,35 @@
             ref="contextMenuContainerRef"
         >
             <li class="first-line">
-                <button class="first-line-button" v-for="{ name, onClick } in icons" :key="name">
-                    <Icon :name="name" class="first-line-icon" @click="onClick" />
+                <button
+                    class="first-line-button"
+                    v-for="{ icon, onClick } in commonItems"
+                    :key="icon"
+                    @click="onClick"
+                >
+                    <Icon :name="icon" class="first-line-icon" />
                 </button>
             </li>
-            <li v-for="{ label, name, onClick } in items" :key="label">
+            <li
+                v-for="({ label, icon, onClick }, index) in musicItems"
+                :key="label"
+                :class="{ 'music-items': index === musicItems.length - 1 }"
+                @click="() => onClick?.()"
+            >
                 <button>
-                    <Icon :name="name" class="item-icon" @click="onClick" />
-                    <!-- <span class="item-label">{{ label }}</span> -->
+                    <Icon :name="icon" class="item-icon" />
+                    <span v-for="letter in label.split('')">{{ letter }}</span>
+                </button>
+            </li>
+            <li
+                v-for="{ label, icon, onClick, onMouseEnter, onMouseLeave } in settingItems"
+                :key="label"
+                @click="() => onClick?.()"
+                @mouseenter="() => onMouseEnter?.()"
+                @mouseleave="() => onMouseLeave?.()"
+            >
+                <button>
+                    <Icon :name="icon" class="item-icon" />
                     <span v-for="letter in label.split('')">{{ letter }}</span>
                 </button>
             </li>
@@ -24,18 +45,14 @@
 </template>
 
 <script lang="ts" setup>
-    import {
-        onMounted,
-        ref,
-        reactive,
-        nextTick,
-        onUnmounted,
-        onBeforeUnmount,
-        computed,
-    } from 'vue';
+    import { onMounted, ref, reactive, nextTick, onBeforeUnmount, computed, watch } from 'vue';
     import type { Position } from './types';
     import Icon from '@/components/icon/index.vue';
     import useSettingHook from '@/hooks/useSettingHook';
+    import { IconType, Lang, Theme } from '@/enums';
+    import { copy } from '@lania/utils';
+    import message from '@/utils/message';
+    import { actions } from '@/store';
 
     const emits = defineEmits(['search', 'toTop']);
     defineExpose({
@@ -48,26 +65,55 @@
     const position = reactive<Position>({ top: 0, left: 0 });
     const contextMenuContainerRef = ref<HTMLDivElement>();
     const setting = useSettingHook();
-    const icons = ref([
-        { name: 'previous-2', onClick: () => {} },
-        { name: 'next-2', onClick: () => {} },
-        { name: 'refresh', onClick: () => {} },
-        { name: 'up-1', onClick: () => emits('toTop') },
-    ]);
-    const items = computed(() => [
-        { name: 'copy', onClick: () => {}, label: '复制链接' },
+    const shouldPrevent = ref(true);
+    const commonItems = ref([
         {
-            name: !setting.isLight ? 'taiyang' : 'yueguang',
+            icon: IconType.previous,
             onClick: () => {},
+        },
+        { icon: IconType.next, onClick: () => {} },
+        { icon: IconType.refresh, onClick: () => location.reload() },
+        { icon: IconType.up, onClick: () => emits('toTop') },
+    ]);
+    const settingItems = computed(() => [
+        {
+            icon: IconType.copy,
+            onClick: async () => {
+                await copy({ text: location.href });
+                message.success('复制成功');
+            },
+            label: '复制链接',
+        },
+        {
+            icon: !setting.isLight ? IconType.sun : IconType.moon,
+            onClick: () => actions.setTheme(setting.isLight ? Theme.dark : Theme.light, true),
             label: !setting.isLight ? '浅色模式' : '深色模式',
         },
         {
-            name: !setting.isSimple ? 'fanzhuanjian' : 'jianzhuanfan',
-            onClick: () => {},
+            icon: !setting.isSimple ? IconType.traditionalChinese : IconType.simpleChinese,
+            onClick: () => actions.setLang(setting.isSimple ? Lang.zh_TW : Lang.zh_CN, true),
             label: setting.isSimple ? '中文繁体' : '中文简体',
         },
-        { name: 'sousuo', onClick: () => emits('search'), label: '搜索文章' },
-        { name: 'shouqicaidan-guanbi', onClick: () => closeMenu, label: '关闭菜单' },
+        { icon: IconType.search, onClick: () => emits('search'), label: '搜索文章' },
+        {
+            icon: IconType.closeMenu,
+            label: '右键菜单',
+            onMouseEnter: () => (shouldPrevent.value = false),
+            onMouseLeave: () => (shouldPrevent.value = true),
+        },
+        { icon: IconType.openMenu, label: '关闭菜单' },
+    ]);
+    const musicItems = computed(() => [
+        {
+            icon: IconType.play,
+            onClick: () => {},
+            label: '播放音乐',
+        },
+        {
+            icon: IconType.nextSong,
+            onClick: () => {},
+            label: '下一首歌',
+        },
     ]);
 
     onMounted(() => {
@@ -80,19 +126,23 @@
     });
 
     const handleWindowContextmenu = (e: MouseEvent) => {
+        if (!shouldPrevent.value) {
+            shouldPrevent.value = true;
+            showMenu.value = false;
+            return;
+        }
         e.preventDefault();
         const { x, y } = e;
         showMenu.value = true;
-        Object.assign(position, { top: y + 'px', left: x + 'px' });
         nextTick(() => {
             const offsetWidth = contextMenuContainerRef.value!.offsetWidth;
             const offsetHeight = contextMenuContainerRef.value!.offsetHeight;
-            if (innerWidth - x > offsetWidth) {
+            if (x < offsetWidth || innerWidth - x > offsetWidth) {
                 Object.assign(position, { left: `${x}px`, right: undefined });
             } else {
-                Object.assign(position, { left: undefined, right: `${-x}px` });
+                Object.assign(position, { left: undefined, right: `${innerWidth - x}px` });
             }
-            if (innerHeight - y > offsetHeight) {
+            if (y < offsetHeight || innerHeight - y > offsetHeight) {
                 Object.assign(position, { top: `${y}px`, bottom: undefined });
             } else {
                 Object.assign(position, { top: undefined, bottom: `${innerHeight - y}px` });
@@ -107,54 +157,53 @@
     };
 </script>
 <style lang="scss">
+    @import '@lania/utils-scss/mixin.scss';
     .context-menu-container {
-        position: fixed;
-        z-index: 10;
-        width: 150px;
-        background-color: var(--card-bg-color);
-        border-radius: 5px;
-        border: 2px solid var(--context-menu-border-color);
+        @include position($position: fixed, $z-index: 10);
+        @include box-model(
+            $width: 150px,
+            $border: 2px solid var(--context-menu-border-color),
+            $border-radius: 5px
+        );
+        @include background($color: var(--card-bg-color));
         li {
-            width: 100%;
-            padding: 8px;
-            list-style: none;
-            box-sizing: border-box;
-
+            @include box-model($width: 100%, $padding: 8px, $box-sizing: border-box);
+            @include list-style();
             button {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-                padding: 5px;
-                border: 0;
-                border-radius: 5px;
-                cursor: pointer;
-                background-color: transparent;
-                color: var(--text-color);
-                font-size: 17px;
-                &:hover {
-                    color: var(--setting-btn-active-text-color);
-                    background-color: var(--context-menu-btn-hover-bg-color);
+                @include flex-container($justify-content: space-between, $align-items: center);
+                @include box-model($width: 100%, $padding: 5px, $border: 0, $border-radius: 5px);
+                @include cursor(pointer);
+                @include background($color: transparent);
+                @include text(17px, var(--text-color));
+                @include hover {
+                    @include text($color: var(--setting-btn-active-text-color));
+                    @include background(var(--context-menu-btn-hover-bg-color));
                 }
+                @include transition(all, 0.15s);
             }
             .item-icon {
-                font-size: 22px;
+                @include text(22px);
             }
         }
 
         .first-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px dashed var(--context-menu-border-color);
+            @include flex-container($justify-content: space-between, $align-items: center);
+            @include border-bottom(2px, dashed, var(--context-menu-border-color));
             .first-line-button {
-                justify-content: center;
-                width: 30px;
-                height: 30px;
-                padding: 0;
-                border: 0;
-                font-size: 17px;
+                @include flex-container($justify-content: center);
+                @include box-model(
+                    $width: 30px,
+                    $height: 30px,
+                    $padding: 0,
+                    $border: 0,
+                    $border-radius: 5px
+                );
+                @include text(17px);
             }
+        }
+
+        .music-items {
+            @include border-bottom(2px, dashed, var(--context-menu-border-color));
         }
     }
 </style>

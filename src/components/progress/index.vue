@@ -23,12 +23,9 @@
     const isMouseDown = ref(false);
 
     onBeforeUnmount(() => {
-        removeEvent();
+        document.removeEventListener('mouseup', handleDocumentMouseUp);
     });
 
-    const removeEvent = () => {
-        document.removeEventListener('mouseup', handleDocumentMouseUp);
-    };
     const handleProcessWidthChange = (e: MouseEvent) => {
         const [{ width, left }] = bar.value?.getClientRects()!;
         const x = e.pageX - left;
@@ -71,12 +68,7 @@
     };
 </script>
 <template>
-    <div
-        class="bar"
-        ref="bar"
-        @mousedown="handleMouseDown"
-        @mouseup="handleBarMouseUp"
-    >
+    <div class="bar" ref="bar" @mousedown="handleMouseDown" @mouseup="handleBarMouseUp">
         <div class="progress-wrapper">
             <div
                 :class="['progress', { 'add-transition': !isMouseDown }]"

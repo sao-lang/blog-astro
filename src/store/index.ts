@@ -1,18 +1,14 @@
 import { Lang, Theme } from '@/enums';
 import { Store } from '@lania/utils';
 import { PersistentPlugin, REHYDRATE } from './persistent-plugin';
-import { PERSISTENT_PLUGIN_STORED_KEY, STORE_SETTING_KEY } from '@/const';
+import { DISPATCH_LANG_KEY, DISPATCH_THEME_KEY, PERSISTENT_PLUGIN_STORED_KEY } from '@/const';
+import { nextTick } from 'vue';
+import message from '@/utils/message';
 export type State = {
     setting: {
         lang: Lang;
         theme: Theme;
     };
-};
-export const actions = {
-    SET_LIGHT: { type: 'SET_LIGHT', payload: { theme: Theme.light } },
-    SET_DARK: { type: 'SET_DARK', payload: { theme: Theme.dark } },
-    SET_ZH_CN: { type: 'SET_ZH_CN', payload: { lang: Lang.zh_CN } },
-    SET_ZH_TW: { type: 'SET_ZH_TW', payload: { lang: Lang.zh_TW } },
 };
 const initialState: State = { setting: { lang: Lang.zh_CN, theme: Theme.light } };
 const persistentPlugin = new PersistentPlugin({
@@ -25,10 +21,10 @@ const store = new Store({
             const newState = { ...state, ...payload };
             return newState;
         },
-        SET_THEME: (state, payload: Record<string, any>) => {
+        [DISPATCH_THEME_KEY]: (state, payload: Record<string, any>) => {
             return { ...state, setting: { ...state.setting, ...payload } };
         },
-        SET_LANG: (state, payload: Record<string, any>) => {
+        [DISPATCH_LANG_KEY]: (state, payload: Record<string, any>) => {
             return { ...state, setting: { ...state.setting, ...payload } };
         },
     },
@@ -42,5 +38,28 @@ const store = new Store({
         },
     },
 });
+
+export const actions = {
+    setTheme: (theme: Theme, showMessage = false) => {
+        store.dispatch({ type: DISPATCH_THEME_KEY, payload: { theme } });
+        showMessage &&
+            nextTick(() => {
+                message.success(
+                    theme === Theme.dark ? '你已经切换成深色模式' : '你已经切换成浅色模式',
+                    1000,
+                );
+            });
+    },
+    setLang: (lang: Lang, showMessage = false) => {
+        store.dispatch({ type: DISPATCH_THEME_KEY, payload: { lang } });
+        showMessage &&
+            nextTick(() => {
+                message.success(
+                    lang === Lang.zh_TW ? '你已经切换成繁体' : '你已经切换成简体',
+                    1000,
+                );
+            });
+    },
+};
 
 export default store;

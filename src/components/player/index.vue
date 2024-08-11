@@ -2,11 +2,11 @@
     import Icon from '@/components/icon/index.vue';
     import Progress from '@/components/progress/index.vue';
     import { throttle } from '@lania/utils';
-    import { computed, onMounted, ref, watch } from 'vue';
+    import { computed, onMounted, ref, watch, type Ref } from 'vue';
     import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
     import type { Song } from './types';
     import { getPlayerSongs } from '@/apis/songs';
-    import { http } from '@/apis/request';
+    import useDraggableHook from '@/hooks/useDraggableHook';
 
     const songs = ref<Song[]>([]);
     const isMouseDown = ref(false);
@@ -23,6 +23,18 @@
         return { ...currentSong, lyrics: parseLyric(currentSong?.lyric) };
     });
     const lyric = ref(current.value?.lyrics[0]?.line ?? '暂无歌词');
+    const showAll = ref(false);
+    const playContainerRef = ref<HTMLElement>();
+    const draggable = useDraggableHook(playContainerRef as Ref<HTMLElement>, {
+        snapToGrid: { x: 50, y: 50 }, // 吸附网格大小
+        snapThreshold: 100, // 吸附距离阈值
+        enableSnap: true, // 启用吸附效果
+        enableAnimation: true, // 启用拖拽动画
+        initialPosition: {
+            x: 50,
+            y: 300,
+        },
+    });
 
     watch(
         () => volume.value,
@@ -32,13 +44,17 @@
     );
     onMounted(() => {
         getSongs();
+        console.log({ draggable: draggable.value });
     });
 
     const getSongs = async () => {
-        const res = await getPlayerSongs();
-        songs.value = res;
+        try {
+            const res = await getPlayerSongs();
+            songs.value = res;
+        } catch (e) {
+            console.error(e);
+        }
     };
-
     const handleSliderMouseDown = () => {
         isMouseDown.value = true;
     };
@@ -107,8 +123,8 @@
 </script>
 
 <template>
-    <div class="player">
-        <div class="player-song-info">
+    <div class="player" ref="playContainerRef">
+        <div v-if="showAll" class="top-container">
             <div class="player-opt-btns">
                 <span
                     @click="() => (isSingleLoop = !isSingleLoop)"
@@ -128,7 +144,7 @@
                     />
                 </span>
             </div>
-            <img class="player-singer-portrait" :src="current.singerPhoto" />
+            <!-- <img class="player-singer-portrait" :src="current.singerPhoto" /> -->
             <div class="player-title">
                 <span class="player-song-name">{{ current.name }}</span>
                 <span class="player-singer-name">{{ current.singer }}</span>
@@ -146,32 +162,30 @@
                     <span>{{ formatDuration(totalTime) }}</span>
                 </div>
             </div>
-            <div class="player-start-btns">
-                <span @click="() => handleSongChange('prev')">
-                    <Icon name="previous" class="player-opt-btn" />
-                </span>
-                <span @click="handleClickStart">
-                    <Icon name="pause" class="player-opt-btn" v-if="!isPlayed" />
-                    <Icon name="play" class="player-opt-btn" v-else />
-                </span>
-                <span @click="() => handleSongChange('next')">
-                    <Icon name="next" class="player-opt-btn" />
-                </span>
-            </div>
-            <audio
-                class="player-audio"
-                ref="audioRef"
-                @loadedmetadata="handleAudioLoadedmetadata"
-                @timeupdate="handleAudioTimeUpdate"
-                @pause="() => (isPlayed = false)"
-                @play="() => (isPlayed = true)"
-                @ended="handleAudioEnded"
-            >
-                <source :src="current.source" />
-            </audio>
         </div>
-
-        <div class="player-lyrics"></div>
+        <div class="player-start-btns">
+            <span @click.stop="() => handleSongChange('prev')" @mousedown.stop @mousemove.stop>
+                <Icon name="previous" class="player-opt-btn" />
+            </span>
+            <span @click.stop="handleClickStart" @mousedown.stop @mousemove.stop>
+                <Icon name="pause" class="player-opt-btn" v-if="!isPlayed" />
+                <Icon name="play" class="player-opt-btn" v-else />
+            </span>
+            <span @click.stop="() => handleSongChange('next')" @mousedown.stop @mousemove.stop>
+                <Icon name="next" class="player-opt-btn" />
+            </span>
+        </div>
+        <audio
+            class="player-audio"
+            ref="audioRef"
+            @loadedmetadata="handleAudioLoadedmetadata"
+            @timeupdate="handleAudioTimeUpdate"
+            @pause="() => (isPlayed = false)"
+            @play="() => (isPlayed = true)"
+            @ended="handleAudioEnded"
+        >
+            <source :src="current.source" />
+        </audio>
     </div>
 </template>
 
