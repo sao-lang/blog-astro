@@ -43,7 +43,7 @@
         },
     );
     onMounted(() => {
-        getSongs();
+        // getSongs();
         console.log({ draggable: draggable.value });
     });
 
@@ -120,10 +120,13 @@
         const newLrc = getLrcFromCurrentTime(currentTime, current.value.lyrics);
         lyric.value = newLrc;
     };
+    const handleBtnsContainerDbClick = () => {
+        showAll.value = !showAll.value;
+    };
 </script>
 
 <template>
-    <div class="player" ref="playContainerRef">
+    <div class="player" ref="playContainerRef" @dblclick="handleBtnsContainerDbClick">
         <div v-if="showAll" class="top-container">
             <div class="player-opt-btns">
                 <span
