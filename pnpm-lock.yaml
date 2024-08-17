@@ -12,8 +12,8 @@ dependencies:
     specifier: ^4.0.8
     version: 4.0.8(@babel/core@7.25.2)(astro@4.1.2)(vite@5.3.5)(vue@3.4.18)
   '@lania/utils':
-    specifier: ^1.4.11
-    version: 1.4.11(axios@1.6.7)
+    specifier: ^1.4.22
+    version: 1.4.22(axios@1.6.7)
   '@lania/utils-json':
     specifier: ^0.1.0
     version: 0.1.0
@@ -1186,13 +1186,12 @@ packages:
     resolution: {integrity: sha512-GTmxwJVpfUPQ2hFuSgzpGSJFsOEthNp0BcSqIJoVWfYzTetYSpiT0Z1R6gpUr5XhRR8tTeP7WgETGRddcHAhNA==}
     dev: false
 
-  /@lania/utils@1.4.11(axios@1.6.7):
-    resolution: {integrity: sha512-Cn558izucf47u93SH92QjP6E2JT2yPeAMvt3GLuITuKfi4GQuvUySvl/jXKOPxOnXyuz2oZOVYBuNAatvAZQHA==}
+  /@lania/utils@1.4.22(axios@1.6.7):
+    resolution: {integrity: sha512-E41YfgugZfWQTRRuc4T1wbythPEPJt2tZrS372r1oYemkD2tpWshvn+yCxXpihVIDKr2Vidb31nodh0MciIZcw==}
     peerDependencies:
       axios: ^1.7.3
     dependencies:
       axios: 1.6.7
-      tslib: 2.6.3
     dev: false
 
   /@nodelib/fs.scandir@2.1.5:
@@ -4433,10 +4432,6 @@ packages:
 
   /tslib@1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
-    dev: false
-
-  /tslib@2.6.3:
-    resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
     dev: false
 
   /tunnel-agent@0.6.0:

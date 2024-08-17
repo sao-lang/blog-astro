@@ -15,4 +15,8 @@ export default {
     info: (msg: string, duration?: number) => message.info(getMessage(msg), duration),
     error: (msg: string, duration?: number) => message.error(getMessage(msg), duration),
     warning: (msg: string, duration?: number) => message.warning(getMessage(msg), duration),
+    // success: (msg: string, duration?: number) => {},
+    // info: (msg: string, duration?: number) => {},
+    // error: (msg: string, duration?: number) => {},
+    // warning: (msg: string, duration?: number) => {},
 };

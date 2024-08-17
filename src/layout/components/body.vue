@@ -9,7 +9,7 @@
     import { convertChinese, convertPageChinese } from '@lania/utils';
     import simpledToTraditional from '@lania/utils-json/simpledToTraditional.json';
     import traditionalToSimpled from '@lania/utils-json/traditionalToSimpled.json';
-    import '@lania/utils/dist/message.css';
+    import '@lania/utils/message.css';
     import { Lang } from '@/enums';
     import type { ContextMenuExpose } from '@/components/context-menu/types';
     import type { ScrollListener } from 'smooth-scrollbar/interfaces/scrollbar';
