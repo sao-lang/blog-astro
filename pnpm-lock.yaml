@@ -18,8 +18,8 @@ dependencies:
     specifier: ^0.1.0
     version: 0.1.0
   '@lania/utils-scss':
-    specifier: ^0.0.9
-    version: 0.0.9
+    specifier: ^0.0.10
+    version: 0.0.10
   astro:
     specifier: ^4.1.2
     version: 4.1.2(@types/node@20.11.3)(sass@1.69.7)(typescript@5.3.3)
@@ -1182,8 +1182,8 @@ packages:
     resolution: {integrity: sha512-KvzIOQfuTSk70ImlV8RoK+ILI8cyFeuRl1LcCxndQHmpnlrpz/dSz4bzyw2yiX+Toi0nrHa4KFmPFBdBk6+o4A==}
     dev: false
 
-  /@lania/utils-scss@0.0.9:
-    resolution: {integrity: sha512-GTmxwJVpfUPQ2hFuSgzpGSJFsOEthNp0BcSqIJoVWfYzTetYSpiT0Z1R6gpUr5XhRR8tTeP7WgETGRddcHAhNA==}
+  /@lania/utils-scss@0.0.10:
+    resolution: {integrity: sha512-j+UQBV3iHIYtHc3tehtOM17b39f6roe8MR5J4fEIxQBxhWJ+YSDQbu7eN1rDqNr0sL+XtzjLl+nMxfuW6eh02Q==}
     dev: false
 
   /@lania/utils@1.4.22(axios@1.6.7):

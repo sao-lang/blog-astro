@@ -1,18 +1,13 @@
+@import '@lania/utils-scss/mixin.scss';
 .player {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: fixed;
-    width: 200px;
+    @include flex-container($direction: column, $align-items: center);
+    @include position($position: fixed, $left: 0, $bottom: 0);
+    @include box-model($width: 200px, $padding: 10px, $border-radius: 5px, $box-sizing: border-box);
+    @include background($color: rgba(255, 255, 255, 0.8));
     overflow: hidden;
-    padding: 10px;
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.8);
     box-shadow:
         rgba(0, 0, 0, 0.05) 0px 6px 24px 0px,
         rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
-    // user-select: none;
-    box-sizing: border-box;
 
     .top-container {
         width: 100%;

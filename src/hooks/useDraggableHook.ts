@@ -1,4 +1,4 @@
-import { Draggable, type DraggableOptions } from '@/utils/draggable';
+import { Draggable, type DraggableOptions } from '@lania/utils';
 import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
 const useDraggableHook = (element: Ref<HTMLElement>, options?: DraggableOptions) => {

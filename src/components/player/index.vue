@@ -6,7 +6,6 @@
     import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
     import type { Song } from './types';
     import { getPlayerSongs } from '@/apis/songs';
-    import useDraggableHook from '@/hooks/useDraggableHook';
 
     const songs = ref<Song[]>([]);
     const isMouseDown = ref(false);
@@ -25,16 +24,6 @@
     const lyric = ref(current.value?.lyrics[0]?.line ?? '暂无歌词');
     const showAll = ref(false);
     const playContainerRef = ref<HTMLElement>();
-    const draggable = useDraggableHook(playContainerRef as Ref<HTMLElement>, {
-        snapToGrid: { x: 50, y: 50 }, // 吸附网格大小
-        snapThreshold: 100, // 吸附距离阈值
-        enableSnap: true, // 启用吸附效果
-        enableAnimation: true, // 启用拖拽动画
-        initialPosition: {
-            x: 50,
-            y: 300,
-        },
-    });
 
     watch(
         () => volume.value,
@@ -43,8 +32,7 @@
         },
     );
     onMounted(() => {
-        // getSongs();
-        console.log({ draggable: draggable.value });
+        getSongs();
     });
 
     const getSongs = async () => {
@@ -120,13 +108,10 @@
         const newLrc = getLrcFromCurrentTime(currentTime, current.value.lyrics);
         lyric.value = newLrc;
     };
-    const handleBtnsContainerDbClick = () => {
-        showAll.value = !showAll.value;
-    };
 </script>
 
 <template>
-    <div class="player" ref="playContainerRef" @dblclick="handleBtnsContainerDbClick">
+    <div class="player" ref="playContainerRef">
         <div v-if="showAll" class="top-container">
             <div class="player-opt-btns">
                 <span
