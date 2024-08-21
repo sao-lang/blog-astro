@@ -12,7 +12,10 @@
             "@/apis/*": ["./src/apis/*"],
             "@/enums/*": ["./src/enums/*"],
             "@/store/*": ["./src/store/*"],
-            "@/hooks/*": ["./src/hooks/*"]
+            "@/hooks/*": ["./src/hooks/*"],
+            "@/mock/*": ["./src/mock/*"]
         }
-    }
+    },
+    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+    "types": ["vite/client"] // 添加 Vite 的类型支持
 }

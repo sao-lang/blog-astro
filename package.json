@@ -14,7 +14,7 @@
         "@astrojs/vue": "^4.0.8",
         "@lania/utils": "^1.4.22",
         "@lania/utils-json": "^0.1.0",
-        "@lania/utils-scss": "^0.0.10",
+        "@lania/utils-scss": "^0.0.14",
         "astro": "^4.1.2",
         "axios": "^1.6.7",
         "dayjs": "^1.11.10",
@@ -28,6 +28,8 @@
         "prettier": "^3.2.2",
         "prettier-plugin-astro": "^0.12.3",
         "sass": "^1.69.7",
-        "typescript": "^5.3.3"
+        "typescript": "^5.3.3",
+        "unplugin-auto-import": "^0.18.2",
+        "vite-tsconfig-paths": "^5.0.1"
     }
 }

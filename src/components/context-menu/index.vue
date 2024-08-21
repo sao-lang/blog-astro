@@ -159,7 +159,7 @@
 <style lang="scss">
     @import '@lania/utils-scss/mixin.scss';
     .context-menu-container {
-        @include position($position: fixed, $z-index: 10);
+        @include fixed($z-index: 10);
         @include box-model(
             $width: 150px,
             $border: 2px solid var(--context-menu-border-color),

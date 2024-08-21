@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-    import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
     import ScrollBar from 'smooth-scrollbar';
     import Typed from 'typed.js';
-    import Player from '@/components/player/index.vue';
+    import Player from '@/components/player-new/index.vue';
     import Icon from '@/components/icon/index.vue';
     import ContextMenu from '@/components/context-menu/index.vue';
     import Setting from '@/components/setting/index.vue';
@@ -118,7 +117,8 @@
         @scroll-to-bottom="() => handleClickScroll('down')"
         @scroll-to-top="() => handleClickScroll('up')"
     />
-    <Player client:only="vue" />
+    <Player />
+    <!-- <Player client:only="vue" /> -->
 </template>
 
 <style lang="scss" scoped>
