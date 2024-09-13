@@ -5,14 +5,29 @@
             class="relative w-full h-full object-cover player__singer-photo"
         />
         <div
-            class="absolute top-0 bg-white player__toolbar-container transition-all duration-500 ease-in-out"
-            :style="{ left: `${toolbarLeft}px` }"
+            class="flex absolute left-0 bg-white player__song-list"
+            :class="[
+                isListOpen ? 'player__song-list--show' : 'player__song-list--hidden',
+                { 'transition-all duration-200': isToolbarOpen },
+            ]"
+        ></div>
+        <div
+            class="absolute top-0 bg-white transition-all duration-500 ease-in-out player__toolbar"
+            :class="[isToolbarOpen ? 'player__toolbar--show' : 'player__toolbar--hidden']"
         >
             <div class="flex justify-between items-center w-full player__toolbar-top">
                 <span class="truncate leading-none player__song-info">
                     {{ title }}
                 </span>
-                <div class="flex player__song-info"></div>
+                <div class="flex justify-center items-center player__controls">
+                    <Icon
+                        v-for="{ type, onClick } in icons"
+                        :key="type"
+                        :name="type"
+                        class="cursor-pointer player__controls-button"
+                        @click="onClick"
+                    />
+                </div>
             </div>
             <div
                 class="flex justify-center items-center absolute top-0 right-0 h-full cursor-pointer player__toolbar-toggle"
@@ -24,11 +39,24 @@
 
 <script setup lang="ts">
     import { songs } from '@/mock/songs';
+    import Icon from '@/components/icon/index.vue';
+    import { IconType } from '@/enums';
     const currentIndex = ref(0);
     const current = computed(() => songs[currentIndex.value]);
     const isToolbarOpen = ref(false);
-    const toolbarLeft = computed(() => (isToolbarOpen.value ? 66 : -268));
+    const isListOpen = ref(false);
     const title = computed(() => `${current.value.singer}-${current.value.name}`);
+    const icons = computed(() => [
+        { type: IconType.previousSong, onClick: () => {} },
+        { type: IconType.pause, onClick: () => {} },
+        { type: IconType.nextSong, onClick: () => {} },
+        { type: IconType.openMenu, onClick: () => (isListOpen.value = !isListOpen.value) },
+    ]);
+    watch(isToolbarOpen, isToolbarOpen => {
+        if (!isToolbarOpen) {
+            isListOpen.value = false;
+        }
+    });
 </script>
 
 <style lang="scss">
@@ -40,21 +68,45 @@
         .player__singer-photo {
             z-index: 2;
         }
-        .player__toolbar-container {
+        .player__toolbar {
             left: 66px;
             width: 346px;
             height: 66px;
             padding: 14px 19px 0 10px;
+            border-top: 1px solid #e6e6e6;
             .player__toolbar-top {
                 .player__song-info {
                     max-width: 212px;
                     font-size: 14px;
+                }
+                .player__controls {
+                    .player__controls-button {
+                        margin-left: 12px;
+                        font-size: 14px;
+                        color: #858585;
+                    }
                 }
             }
             .player__toolbar-toggle {
                 width: 12px;
                 background-color: #e6e6e6;
             }
+        }
+        .player__toolbar--show {
+            left: 66px;
+        }
+        .player__toolbar--hidden {
+            left: -268px;
+        }
+        .player__song-list {
+            width: 400px;
+            height: 250px;
+        }
+        .player__song-list--hidden {
+            top: 66px;
+        }
+        .player__song-list--show {
+            top: -250px;
         }
     }
 </style>
