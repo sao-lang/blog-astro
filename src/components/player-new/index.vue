@@ -60,53 +60,63 @@
 </script>
 
 <style lang="scss">
-    @import '@lania/utils-scss/mixin.scss';
     .player {
         background-color: var(--bg-color);
         width: 66px;
         height: 66px;
-        .player__singer-photo {
-            z-index: 2;
-        }
-        .player__toolbar {
-            left: 66px;
-            width: 346px;
-            height: 66px;
-            padding: 14px 19px 0 10px;
-            border-top: 1px solid #e6e6e6;
-            .player__toolbar-top {
-                .player__song-info {
-                    max-width: 212px;
-                    font-size: 14px;
-                }
-                .player__controls {
-                    .player__controls-button {
-                        margin-left: 12px;
-                        font-size: 14px;
-                        color: #858585;
-                    }
-                }
-            }
-            .player__toolbar-toggle {
-                width: 12px;
-                background-color: #e6e6e6;
-            }
-        }
-        .player__toolbar--show {
-            left: 66px;
-        }
-        .player__toolbar--hidden {
-            left: -268px;
-        }
-        .player__song-list {
-            width: 400px;
-            height: 250px;
-        }
-        .player__song-list--hidden {
-            top: 66px;
-        }
-        .player__song-list--show {
-            top: -250px;
-        }
+    }
+
+    .player__singer-photo {
+        z-index: 2;
+    }
+
+    .player__toolbar {
+        left: 66px;
+        width: 346px;
+        height: 66px;
+        padding: 14px 19px 0 10px;
+        border-top: 1px solid #e6e6e6;
+    }
+
+    .player__toolbar-top {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .player__song-info {
+        max-width: 212px;
+        font-size: 14px;
+    }
+
+    .player__controls-button {
+        margin-left: 12px;
+        font-size: 14px;
+        color: #858585;
+    }
+
+    .player__toolbar-toggle {
+        width: 12px;
+        background-color: #e6e6e6;
+    }
+
+    .player__toolbar--show {
+        left: 66px;
+    }
+
+    .player__toolbar--hidden {
+        left: -268px;
+    }
+
+    .player__song-list {
+        width: 400px;
+        height: 250px;
+    }
+
+    .player__song-list--hidden {
+        top: 66px;
+    }
+
+    .player__song-list--show {
+        top: -250px;
     }
 </style>
