@@ -1,0 +1,1 @@
+export const FLOAT_TIME = 0.8;

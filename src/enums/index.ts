@@ -32,4 +32,6 @@ export enum IconType {
     setting = 'shezhi',
     like = 'xihuan',
     debounceDown = 'down1',
+    right = 'next-1',
+    left = 'previous-1',
 }
