@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-    import ScrollBar from 'smooth-scrollbar';
     import Typed from 'typed.js';
     import Player from '@/components/player-new/index.vue';
     import Icon from '@/components/icon/index.vue';
@@ -11,18 +10,21 @@
     import '@lania/utils/message.css';
     import { Lang } from '@/enums';
     import type { ContextMenuExpose } from '@/components/context-menu/types';
-    import type { ScrollListener } from 'smooth-scrollbar/interfaces/scrollbar';
     import useSettingHook from '@/hooks/useSettingHook';
+    import useScrollbarHook from '@/hooks/useScrollbarHook';
 
     const typedRef = ref<HTMLSpanElement>();
     const typed = ref<Typed>();
     const scrollbarRef = ref<HTMLDivElement>();
     const headerContainerRef = ref<HTMLHeadElement>();
-    const scrollbar = ref<ScrollBar>();
     const scrollBarProgress = ref(0);
     const typedWords = ref<string[]>(['去国十年老尽，少年心', '老夫聊发少年狂']);
     const contextMenuRef = ref<ContextMenuExpose>();
     const setting = useSettingHook();
+    const scrollbar = useScrollbarHook(scrollbarRef as Ref<HTMLElement>, ({ offset, limit }) => {
+        contextMenuRef.value?.closeMenu();
+        scrollBarProgress.value = Math.floor((offset.y / limit.y) * 100);
+    });
 
     watch(
         () => setting.isLight,
@@ -57,10 +59,8 @@
 
     onMounted(() => {
         initTyped();
-        initScrollBar();
     });
     onUnmounted(() => {
-        scrollbar.value?.removeListener(handleScrollbarScroll);
     });
     const initTyped = (words?: string[]) => {
         if (typed.value) {
@@ -74,10 +74,6 @@
             backDelay: 5000,
         });
     };
-    const initScrollBar = () => {
-        scrollbar.value = ScrollBar.init(scrollbarRef.value!);
-        scrollbar.value.addListener(handleScrollbarScroll);
-    };
     const handleClickDownIcon = () => {
         const mainContainer = scrollbarRef.value as HTMLDivElement;
         const headerContainer = headerContainerRef.value as HTMLDivElement;
@@ -86,10 +82,6 @@
     };
     const handleClickScroll = (type: 'down' | 'up') => {
         scrollbar.value!.scrollTo(0, type === 'up' ? 0 : scrollbar.value!.limit.y, 500);
-    };
-    const handleScrollbarScroll: ScrollListener = ({ offset, limit }) => {
-        contextMenuRef.value?.closeMenu();
-        scrollBarProgress.value = Math.floor((offset.y / limit.y) * 100);
     };
 </script>
 

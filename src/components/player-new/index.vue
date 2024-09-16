@@ -5,6 +5,7 @@
             class="relative w-full h-full object-cover player__singer-photo"
         />
         <ul
+            ref="scrollbarRef"
             class="flex flex-col absolute left-0 bg-white player__song-list"
             :class="[
                 isListOpen ? 'player__song-list--show' : 'player__song-list--hidden',
@@ -82,6 +83,7 @@
     import { IconType } from '@/enums';
     import { formatDuration } from './helper';
     import type { SongChangeType } from '@/types';
+    import useScrollbarHook from '@/hooks/useScrollbarHook';
 
     const currentIndex = ref(0);
     const current = computed(() => songs[currentIndex.value]);
@@ -102,6 +104,8 @@
     const totalTime = ref(0);
     const percent = ref(0);
     const isSingleLoop = ref(false);
+    const scrollbarRef = ref<HTMLDivElement>();
+    const scrollbar = useScrollbarHook(scrollbarRef as Ref<HTMLDivElement>);
 
     const handleSongChange = (type: SongChangeType, index?: number) => {
         if (type === 'click') {
@@ -113,6 +117,25 @@
         if (!isToolbarOpen) {
             isListOpen.value = false;
         }
+    });
+    watch(
+        currentIndex,
+        currentIndex => {
+            nextTick(() => {
+                const songItemEl = document.querySelector('.player__song-item') as HTMLLIElement;
+                console.log({ songItemEl });
+                scrollbar.value?.scrollTo(0, songItemEl.offsetHeight * currentIndex, 300);
+            });
+        },
+        { immediate: true },
+    );
+
+    onMounted(() => {
+        console.log({
+            scrollHeight: scrollbarRef.value?.scrollHeight,
+            clientHeight: scrollbarRef.value?.clientHeight,
+            // latentHeight:
+        });
     });
 </script>
 
@@ -214,7 +237,7 @@
     }
 
     .player__song-list--show {
-        top: -250px;
+        top: -316px;
     }
 
     .player__progress {

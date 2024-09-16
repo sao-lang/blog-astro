@@ -7,7 +7,7 @@ export interface StoreDerivedState {
     isLight: boolean;
 }
 
-const useSettingHook = (onSettingChange?: (setting: State['setting']) => void) => {
+export const useSettingHook = (onSettingChange?: (setting: State['setting']) => void) => {
     const setting = reactive<StoreDerivedState>({ isLight: true, isSimple: true });
     store.watchProperty(
         'setting',
