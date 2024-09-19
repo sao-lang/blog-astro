@@ -5,6 +5,7 @@
             class="relative w-full h-full object-cover player__singer-photo"
         />
         <ul
+            v-if="!showLyrics"
             ref="scrollbarRef"
             class="flex flex-col absolute left-0 bg-white player__song-list"
             :class="[
@@ -26,10 +27,19 @@
                     class="absolute left-0 player__song-item-flag"
                     v-if="index === currentIndex"
                 />
-                <span>{{ name }}</span>
+                <span class="truncate player__song-name">{{ name }}</span>
                 <span>{{ singer }}</span>
             </li>
         </ul>
+        <div
+            v-else
+            class="flex flex-col player__lyrics-container"
+            :class="[
+                isListOpen ? 'player__lyrics-container--show' : 'player__lyrics-container--hidden',
+                { 'transition-all duration-700': isToolbarOpen },
+            ]"
+        >
+        </div>
         <div
             class="flex flex-col justify-between absolute top-0 bg-white transition-all duration-500 ease-in-out player__toolbar"
             :class="[isToolbarOpen ? 'player__toolbar--show' : 'player__toolbar--hidden']"
@@ -44,12 +54,20 @@
                         :key="type"
                         :name="type"
                         class="cursor-pointer player__controls-button"
-                        @click="onClick"
+                        @click.stop="onClick"
+                        @mousedown.stop
+                        @mousemove.stop
                     />
                 </div>
             </div>
             <div class="flex items-center player__toolbar-bottom">
-                <Progress v-model:percent="percent" class="player__progress" />
+                <Progress
+                    v-model:percent="percent"
+                    class="player__progress"
+                    @mouseup="handleProgressMouseUp"
+                    @mousedown="isMouseDown = true"
+                    @change="handlePercentChange"
+                />
                 <div class="flex player__song-time">
                     <span class="leading-none">
                         {{ formatDuration(totalTime * percent) }} /
@@ -73,6 +91,17 @@
                 <Icon :name="openIcon" />
             </div>
         </div>
+        <audio
+            class="hidden"
+            ref="audioRef"
+            @loadedmetadata="handleAudioLoadedmetadata"
+            @timeupdate="handleAudioTimeUpdate"
+            @pause="() => (isPlayed = false)"
+            @play="() => (isPlayed = true)"
+            @ended="handleAudioEnded"
+        >
+            <source :src="current.source" />
+        </audio>
     </div>
 </template>
 
@@ -81,19 +110,39 @@
     import Icon from '@/components/icon/index.vue';
     import Progress from '@/components/progress/index.vue';
     import { IconType } from '@/enums';
-    import { formatDuration } from './helper';
+    import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
     import type { SongChangeType } from '@/types';
     import useScrollbarHook from '@/hooks/useScrollbarHook';
+    import { throttle } from '@lania/utils';
 
     const currentIndex = ref(0);
-    const current = computed(() => songs[currentIndex.value]);
+    const current = computed(() => {
+        const currentSong = songs[currentIndex.value];
+        return { ...currentSong, lyrics: parseLyric(currentSong?.lyric) };
+    });
     const isToolbarOpen = ref(false);
     const isListOpen = ref(false);
     const title = computed(() => `${current.value.singer}-${current.value.name}`);
     const icons = computed(() => [
-        { type: IconType.previousSong, onClick: () => {} },
-        { type: IconType.pause, onClick: () => {} },
-        { type: IconType.nextSong, onClick: () => {} },
+        {
+            type: IconType.previousSong,
+            onClick: () => {
+                handleSongChange('prev');
+            },
+        },
+        {
+            type: isPlayed.value ? IconType.play : IconType.pause,
+            onClick: () => {
+                const audio = audioRef.value;
+                audio?.paused ? audio.play() : audio?.pause();
+            },
+        },
+        {
+            type: IconType.nextSong,
+            onClick: () => {
+                handleSongChange('next');
+            },
+        },
         { type: IconType.openMenu, onClick: () => (isListOpen.value = !isListOpen.value) },
     ]);
     const toolIcons = computed(() => [
@@ -106,10 +155,29 @@
     const isSingleLoop = ref(false);
     const scrollbarRef = ref<HTMLDivElement>();
     const scrollbar = useScrollbarHook(scrollbarRef as Ref<HTMLDivElement>);
+    const isPlayed = ref(false);
+    const volume = ref(1);
+    const isMouseDown = ref(false);
+    const audioRef = ref<HTMLAudioElement>();
+    const showLyrics = ref(false);
 
     const handleSongChange = (type: SongChangeType, index?: number) => {
-        if (type === 'click') {
-            currentIndex.value = index!;
+        if (currentIndex.value === index) {
+            showLyrics.value = true;
+            return;
+        }
+        const isPaused = !isPlayed.value;
+        audioRef.value?.pause();
+        isPlayed.value = false;
+        percent.value = 0;
+        currentIndex.value =
+            type === 'click' ? index! : getCurrentIndex(type, songs, currentIndex.value);
+        // lyric.value = current.value?.lyrics[0]?.line ?? '暂无歌词';
+        audioRef.value!.src = current.value.source;
+        audioRef.value?.load();
+        if (!isPaused) {
+            audioRef.value?.play();
+            isPlayed.value = true;
         }
     };
 
@@ -123,20 +191,59 @@
         currentIndex => {
             nextTick(() => {
                 const songItemEl = document.querySelector('.player__song-item') as HTMLLIElement;
-                console.log({ songItemEl });
                 scrollbar.value?.scrollTo(0, songItemEl.offsetHeight * currentIndex, 300);
             });
         },
         { immediate: true },
     );
+    watch(
+        () => volume.value,
+        volume => {
+            audioRef.value!.volume = volume;
+        },
+    );
 
-    onMounted(() => {
-        console.log({
-            scrollHeight: scrollbarRef.value?.scrollHeight,
-            clientHeight: scrollbarRef.value?.clientHeight,
-            // latentHeight:
-        });
-    });
+    const handleProgressMouseUp = (value: number) => {
+        isMouseDown.value = false;
+        const currentTime = Math.floor(totalTime.value * value);
+        (audioRef.value as HTMLAudioElement).currentTime = currentTime;
+    };
+    const handlePercentChange = (value: number) => {
+        const currentTime = Math.floor(totalTime.value * value);
+        const newLrc = getLrcFromCurrentTime(currentTime, current.value.lyrics);
+        // lyric.value = newLrc;
+    };
+    const handleAudioLoadedmetadata = (e: Event) => {
+        const target = e.target as HTMLAudioElement;
+        totalTime.value = target.duration;
+        volume.value = target.volume;
+    };
+    const handleAudioTimeUpdate = throttle(
+        (e: Event) => {
+            if (isMouseDown.value) {
+                return;
+            }
+            const currentTime = (e.target as HTMLAudioElement).currentTime;
+            percent.value = Number((currentTime / totalTime.value).toFixed(4));
+            // const newLrc = getLrcFromCurrentTime(currentTime, current.value.lyrics);
+            // lyric.value = newLrc;
+        },
+        1000,
+        { leading: true, trailing: false },
+    );
+    const handleAudioEnded = (e: Event) => {
+        const target = e.target as HTMLAudioElement;
+        if (!isSingleLoop.value) {
+            currentIndex.value =
+                currentIndex.value === songs.length - 1 ? 0 : currentIndex.value + 1;
+            target.src = current.value.source;
+            target.load();
+        }
+        // lyric.value = current.value?.lyrics[0]?.line ?? '暂无歌词';
+        isPlayed.value = true;
+        target.play();
+        percent.value = 0;
+    };
 </script>
 
 <style lang="scss" scoped>
@@ -225,6 +332,10 @@
         border-bottom: 0;
     }
 
+    .player__song-name {
+        max-width: 240px;
+    }
+
     .player__song-item-flag {
         left: 1px;
         width: 3px;
@@ -232,10 +343,12 @@
         background-color: orangered;
     }
 
+    .player__lyrics-container--hidden,
     .player__song-list--hidden {
         top: 66px;
     }
 
+    .player__lyrics-container--show,
     .player__song-list--show {
         top: -316px;
     }
