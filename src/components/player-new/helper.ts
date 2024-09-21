@@ -9,16 +9,12 @@ export const formatDuration = (duration: number) => {
     return `${formattedMinutes}:${formattedSeconds}`;
 };
 
-export const getLrcFromCurrentTime = (currentTime: number, lyrics: Lyric[]) => {
-    let index = 0;
+export const getLrcIndexFromCurrentTime = (currentTime: number, lyrics: Lyric[]) => {
     if (currentTime > lyrics[lyrics.length - 1].time - FLOAT_TIME) {
-        index = lyrics.length - 1;
-    } else {
-        const findIndex = lyrics.findIndex(({ time }) => currentTime < time - FLOAT_TIME);
-        index = findIndex < 0 ? 0 : findIndex - 1;
+        return lyrics.length - 1;
     }
-    const { line } = lyrics[index];
-    return line;
+    const findIndex = lyrics.findIndex(({ time }) => currentTime < time - FLOAT_TIME);
+    return findIndex < 0 ? 0 : findIndex - 1;
 };
 
 const transformLyricTime = (time: string) => {

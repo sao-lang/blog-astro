@@ -5,12 +5,14 @@
             class="relative w-full h-full object-cover player__singer-photo"
         />
         <ul
-            v-if="!showLyrics"
             ref="scrollbarRef"
             class="flex flex-col absolute left-0 bg-white player__song-list"
             :class="[
-                isListOpen ? 'player__song-list--show' : 'player__song-list--hidden',
-                { 'transition-all duration-700': isToolbarOpen },
+                isListOpen ? 'player__song-list--open' : 'player__song-list--close',
+                !showLyrics ? 'player__song-list--show' : 'player__song-list--hide',
+                {
+                    'transition-all duration-700': isToolbarOpen,
+                },
             ]"
         >
             <li
@@ -32,13 +34,24 @@
             </li>
         </ul>
         <div
-            v-else
-            class="flex flex-col player__lyrics-container"
+            class="flex flex-col absolute left-0 bg-white player__lyrics-container"
             :class="[
-                isListOpen ? 'player__lyrics-container--show' : 'player__lyrics-container--hidden',
+                isListOpen ? 'player__lyrics-container--open' : 'player__lyrics-container--close',
                 { 'transition-all duration-700': isToolbarOpen },
+                showLyrics ? 'player__lyrics-container--show' : 'player__lyrics-container--hide',
             ]"
         >
+            <ul class="player__lyrics-inner" ref="lyricsContainerRef">
+                <li
+                    v-for="(lyric, index) in current.lyrics"
+                    :key="lyric.time"
+                    class="flex items-center player__lyric-item"
+                    :class="{ 'player__lyric-item--current': currentLrcIndex === index }"
+                    :style="{ height: `${LRC_SHOW_LIMIT}%` }"
+                >
+                    {{ lyric.line }}
+                </li>
+            </ul>
         </div>
         <div
             class="flex flex-col justify-between absolute top-0 bg-white transition-all duration-500 ease-in-out player__toolbar"
@@ -110,11 +123,16 @@
     import Icon from '@/components/icon/index.vue';
     import Progress from '@/components/progress/index.vue';
     import { IconType } from '@/enums';
-    import { formatDuration, getCurrentIndex, getLrcFromCurrentTime, parseLyric } from './helper';
+    import {
+        formatDuration,
+        getCurrentIndex,
+        getLrcIndexFromCurrentTime,
+        parseLyric,
+    } from './helper';
     import type { SongChangeType } from '@/types';
     import useScrollbarHook from '@/hooks/useScrollbarHook';
+    import { LRC_SHOW_LIMIT } from './const';
     import { throttle } from '@lania/utils';
-
     const currentIndex = ref(0);
     const current = computed(() => {
         const currentSong = songs[currentIndex.value];
@@ -154,32 +172,14 @@
     const percent = ref(0);
     const isSingleLoop = ref(false);
     const scrollbarRef = ref<HTMLDivElement>();
+    const lyricsContainerRef = ref<HTMLUListElement>();
     const scrollbar = useScrollbarHook(scrollbarRef as Ref<HTMLDivElement>);
     const isPlayed = ref(false);
     const volume = ref(1);
     const isMouseDown = ref(false);
     const audioRef = ref<HTMLAudioElement>();
     const showLyrics = ref(false);
-
-    const handleSongChange = (type: SongChangeType, index?: number) => {
-        if (currentIndex.value === index) {
-            showLyrics.value = true;
-            return;
-        }
-        const isPaused = !isPlayed.value;
-        audioRef.value?.pause();
-        isPlayed.value = false;
-        percent.value = 0;
-        currentIndex.value =
-            type === 'click' ? index! : getCurrentIndex(type, songs, currentIndex.value);
-        // lyric.value = current.value?.lyrics[0]?.line ?? '暂无歌词';
-        audioRef.value!.src = current.value.source;
-        audioRef.value?.load();
-        if (!isPaused) {
-            audioRef.value?.play();
-            isPlayed.value = true;
-        }
-    };
+    const currentLrcIndex = ref(0);
 
     watch(isToolbarOpen, isToolbarOpen => {
         if (!isToolbarOpen) {
@@ -202,7 +202,42 @@
             audioRef.value!.volume = volume;
         },
     );
+    watch(currentLrcIndex, value => {
+        const lrcItemEl = lyricsContainerRef.value?.childNodes[1] as HTMLLIElement;
+        const { height } = lrcItemEl!.getBoundingClientRect();
+        if (value === 0) {
+            lyricsContainerRef.value?.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+            });
+            return;
+        }
+        if (value > LRC_SHOW_LIMIT / 2) {
+            lyricsContainerRef.value?.scrollTo({
+                top: (value - LRC_SHOW_LIMIT / 2) * height,
+                behavior: 'smooth',
+            });
+        }
+    });
 
+    const handleSongChange = (type: SongChangeType, index?: number) => {
+        if (currentIndex.value === index) {
+            isPlayed.value
+                ? (showLyrics.value = true)
+                : ((isPlayed.value = true), audioRef.value?.play());
+            return;
+        }
+        audioRef.value?.pause();
+        isPlayed.value = false;
+        percent.value = 0;
+        currentIndex.value =
+            type === 'click' ? index! : getCurrentIndex(type, songs, currentIndex.value);
+        currentLrcIndex.value = 0;
+        audioRef.value!.src = current.value.source;
+        audioRef.value?.load();
+        audioRef.value?.play();
+        isPlayed.value = true;
+    };
     const handleProgressMouseUp = (value: number) => {
         isMouseDown.value = false;
         const currentTime = Math.floor(totalTime.value * value);
@@ -210,7 +245,7 @@
     };
     const handlePercentChange = (value: number) => {
         const currentTime = Math.floor(totalTime.value * value);
-        const newLrc = getLrcFromCurrentTime(currentTime, current.value.lyrics);
+        currentLrcIndex.value = getLrcIndexFromCurrentTime(currentTime, current.value.lyrics);
         // lyric.value = newLrc;
     };
     const handleAudioLoadedmetadata = (e: Event) => {
@@ -225,7 +260,7 @@
             }
             const currentTime = (e.target as HTMLAudioElement).currentTime;
             percent.value = Number((currentTime / totalTime.value).toFixed(4));
-            // const newLrc = getLrcFromCurrentTime(currentTime, current.value.lyrics);
+            currentLrcIndex.value = getLrcIndexFromCurrentTime(currentTime, current.value.lyrics);
             // lyric.value = newLrc;
         },
         1000,
@@ -300,9 +335,11 @@
         left: -268px;
     }
 
+    .player__lyrics-container,
     .player__song-list {
         width: 400px;
         height: 250px;
+        font-family: Arial, Helvetica, sans-serif;
         overflow-y: auto;
 
         &::-webkit-scrollbar {
@@ -328,6 +365,31 @@
         background-color: #e9e9e9;
     }
 
+    .player__lyrics-container {
+        padding: 12px 0 12px 12px;
+    }
+
+    .player__lyrics-inner {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        overflow-y: auto;
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .player__lyric-item {
+        width: 80%;
+        font-size: 15px;
+        line-height: 1;
+    }
+
+    .player__lyric-item--current {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
     .player__song-item--no-border {
         border-bottom: 0;
     }
@@ -343,14 +405,28 @@
         background-color: orangered;
     }
 
-    .player__lyrics-container--hidden,
-    .player__song-list--hidden {
+    .player__lyrics-container--close,
+    .player__song-list--close {
         top: 66px;
     }
 
-    .player__lyrics-container--show,
-    .player__song-list--show {
+    .player__song-list--open {
         top: -316px;
+    }
+
+    .player__song-list--show,
+    .player__lyrics-container--show {
+        opacity: 1;
+    }
+
+    .player__song-list--hide,
+    .player__lyrics-container--hide {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .player__lyrics-container--open {
+        top: -250px;
     }
 
     .player__progress {
