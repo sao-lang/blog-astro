@@ -34,4 +34,5 @@ export enum IconType {
     debounceDown = 'down1',
     right = 'next-1',
     left = 'previous-1',
+    lyric = 'lyric',
 }

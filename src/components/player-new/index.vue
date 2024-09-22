@@ -30,18 +30,31 @@
                     v-if="index === currentIndex"
                 />
                 <span class="truncate player__song-name">{{ name }}</span>
-                <span>{{ singer }}</span>
+                <span class="flex items-center">
+                    <span>{{ singer }}</span>
+                    <Icon
+                        v-if="index === currentIndex"
+                        :name="IconType.lyric"
+                        class="player__song-item-lrc-icon"
+                        @click.stop="showLyrics = true"
+                    />
+                </span>
             </li>
         </ul>
         <div
-            class="flex flex-col absolute left-0 bg-white player__lyrics-container"
+            class="flex flex-col absolute left-0 bg-white cursor-pointer player__lyrics-container"
             :class="[
                 isListOpen ? 'player__lyrics-container--open' : 'player__lyrics-container--close',
                 { 'transition-all duration-700': isToolbarOpen },
                 showLyrics ? 'player__lyrics-container--show' : 'player__lyrics-container--hide',
             ]"
+            @click="showLyrics = false"
         >
-            <ul class="player__lyrics-inner" ref="lyricsContainerRef">
+            <ul
+                class="player__lyrics-inner"
+                ref="lyricsContainerRef"
+                v-if="current.lyrics?.length > 0"
+            >
                 <li
                     v-for="(lyric, index) in current.lyrics"
                     :key="lyric.time"
@@ -52,6 +65,9 @@
                     {{ lyric.line }}
                 </li>
             </ul>
+            <div v-else class="flex justify-center items-center player__lyrics--no-lyrics">
+                暂无歌词
+            </div>
         </div>
         <div
             class="flex flex-col justify-between absolute top-0 bg-white transition-all duration-500 ease-in-out player__toolbar"
@@ -95,6 +111,13 @@
                         :name="type"
                         @click="onClick"
                     />
+                    <div class="absolute player__volume-bar-wrapper">
+                        <Progress
+                            v-if="showVolumeBar"
+                            class="absolute player__volume-bar"
+                            v-model:percent="volume"
+                        />
+                    </div>
                 </div>
             </div>
             <div
@@ -162,10 +185,14 @@
             },
         },
         { type: IconType.openMenu, onClick: () => (isListOpen.value = !isListOpen.value) },
+        // { type: IconType.lyric, onClick: () => (showLyrics.value = !showLyrics.value) },
     ]);
     const toolIcons = computed(() => [
-        { type: IconType.voice, onClick: () => {} },
-        { type: isSingleLoop.value ? IconType.singlePlay : IconType.circlePlay, onClick: () => {} },
+        { type: IconType.voice, onClick: () => (showVolumeBar.value = !showVolumeBar.value) },
+        {
+            type: isSingleLoop.value ? IconType.singlePlay : IconType.circlePlay,
+            onClick: () => (isSingleLoop.value = !isSingleLoop.value),
+        },
     ]);
     const openIcon = computed(() => (isToolbarOpen.value ? IconType.left : IconType.right));
     const totalTime = ref(0);
@@ -180,10 +207,12 @@
     const audioRef = ref<HTMLAudioElement>();
     const showLyrics = ref(false);
     const currentLrcIndex = ref(0);
+    const showVolumeBar = ref(false);
 
     watch(isToolbarOpen, isToolbarOpen => {
         if (!isToolbarOpen) {
             isListOpen.value = false;
+            showVolumeBar.value = false;
         }
     });
     watch(
@@ -203,21 +232,14 @@
         },
     );
     watch(currentLrcIndex, value => {
-        const lrcItemEl = lyricsContainerRef.value?.childNodes[1] as HTMLLIElement;
-        const { height } = lrcItemEl!.getBoundingClientRect();
-        if (value === 0) {
+        nextTick(() => {
+            const lrcItemEl = lyricsContainerRef.value?.childNodes[1] as HTMLLIElement;
+            const { height } = lrcItemEl!.getBoundingClientRect();
             lyricsContainerRef.value?.scrollTo({
-                top: 0,
+                top: value > LRC_SHOW_LIMIT / 2 ? (value - LRC_SHOW_LIMIT / 2) * height : 0,
                 behavior: 'smooth',
             });
-            return;
-        }
-        if (value > LRC_SHOW_LIMIT / 2) {
-            lyricsContainerRef.value?.scrollTo({
-                top: (value - LRC_SHOW_LIMIT / 2) * height,
-                behavior: 'smooth',
-            });
-        }
+        });
     });
 
     const handleSongChange = (type: SongChangeType, index?: number) => {
@@ -246,7 +268,6 @@
     const handlePercentChange = (value: number) => {
         const currentTime = Math.floor(totalTime.value * value);
         currentLrcIndex.value = getLrcIndexFromCurrentTime(currentTime, current.value.lyrics);
-        // lyric.value = newLrc;
     };
     const handleAudioLoadedmetadata = (e: Event) => {
         const target = e.target as HTMLAudioElement;
@@ -261,7 +282,6 @@
             const currentTime = (e.target as HTMLAudioElement).currentTime;
             percent.value = Number((currentTime / totalTime.value).toFixed(4));
             currentLrcIndex.value = getLrcIndexFromCurrentTime(currentTime, current.value.lyrics);
-            // lyric.value = newLrc;
         },
         1000,
         { leading: true, trailing: false },
@@ -274,7 +294,6 @@
             target.src = current.value.source;
             target.load();
         }
-        // lyric.value = current.value?.lyrics[0]?.line ?? '暂无歌词';
         isPlayed.value = true;
         target.play();
         percent.value = 0;
@@ -286,6 +305,7 @@
         background-color: var(--bg-color);
         width: 66px;
         height: 66px;
+        user-select: none;
     }
 
     .player__singer-photo {
@@ -309,7 +329,7 @@
         max-width: 212px;
         font-size: 14px;
         color: #858585;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'jetbrains-mono', 'source-heiti-light';
     }
 
     .player__controls-button {
@@ -339,7 +359,7 @@
     .player__song-list {
         width: 400px;
         height: 250px;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'jetbrains-mono', 'source-heiti-light';
         overflow-y: auto;
 
         &::-webkit-scrollbar {
@@ -354,7 +374,7 @@
         border-bottom: 1px solid #e6e6e6;
         font-size: 14px;
         color: #858585;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'jetbrains-mono', 'source-heiti-light';
 
         &:hover {
             background-color: #e9e9e9;
@@ -379,6 +399,13 @@
         }
     }
 
+    .player__lyrics--no-lyrics {
+        width: 100%;
+        height: 100%;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
     .player__lyric-item {
         width: 80%;
         font-size: 15px;
@@ -396,6 +423,11 @@
 
     .player__song-name {
         max-width: 240px;
+    }
+
+    .player__song-item-lrc-icon {
+        font-size: 16px;
+        margin-left: 8px;
     }
 
     .player__song-item-flag {
@@ -430,7 +462,7 @@
     }
 
     .player__progress {
-        width: 160px;
+        width: 144px;
         margin-left: 4px;
     }
 
@@ -438,10 +470,20 @@
         margin-left: 10px;
         font-size: 14px;
         color: #858585;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'jetbrains-mono', 'source-heiti-light';
     }
 
     .player__controls-button-song {
         right: 10px;
+    }
+
+    .player__volume-bar-wrapper {
+        left: 35px;
+        top: 5px;
+        width: 50px;
+        z-index: 10;
+    }
+
+    .player__volume-bar {
     }
 </style>

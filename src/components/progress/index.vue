@@ -1,10 +1,14 @@
 <script lang="ts" setup>
-    import { computed, onBeforeUnmount, ref, type PropType, watch, nextTick } from 'vue';
+    import { computed, onBeforeUnmount, ref, type PropType, nextTick } from 'vue';
 
     const props = defineProps({
         percent: {
             type: Number as PropType<number>,
             default: 0,
+        },
+        direction: {
+            type: String as PropType<'horizontal' | 'vertical'>,
+            default: 'horizontal',
         },
     });
     const emits = defineEmits(['update:percent', 'mousedown', 'mouseup', 'mousemove', 'change']);
@@ -68,7 +72,13 @@
     };
 </script>
 <template>
-    <div class="bar" ref="bar" @mousedown="handleMouseDown" @mouseup="handleBarMouseUp">
+    <div
+        class="bar"
+        :class="{ 'bar--vertical': props.direction === 'vertical' }"
+        ref="bar"
+        @mousedown="handleMouseDown"
+        @mouseup="handleBarMouseUp"
+    >
         <div class="progress-wrapper">
             <div
                 :class="['progress', { 'add-transition': !isMouseDown }]"
